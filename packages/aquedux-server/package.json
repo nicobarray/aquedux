@@ -1,6 +1,6 @@
 {
   "name": "aquedux-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "build/index.js",
   "repository": "https://github.com/winamax/aquedux",
   "license": "MIT",
