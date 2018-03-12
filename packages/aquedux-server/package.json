@@ -1,0 +1,24 @@
+{
+  "name": "aquedux-server",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "repository": "https://github.com/winamax/aquedux",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest",
+    "build": "babel src --out-dir build",
+    "watch": "yarn build --watch"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "bunyan": "^1.8.5",
+    "jsonwebtoken": "^7.3.0",
+    "lodash": "^4.17.4",
+    "rambda": "^0.9.3",
+    "redis": "^2.7.1",
+    "reducr": "^1.0.1",
+    "redux": "^3.6.0",
+    "sockjs": "^0.3.18",
+    "uuid": "^3.1.0"
+  }
+}

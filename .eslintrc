@@ -1,0 +1,23 @@
+{
+  "extends": [
+    "plugin:flowtype/recommended",
+    "prettier",
+    "prettier/flowtype"
+  ],
+  "plugins": ["flowtype", "prettier", "jest"],
+  "rules": {
+    "prettier/prettier": [
+      "error",
+      {
+        "singleQuote": true,
+        "jsxBracketSameLine": true,
+        "printWidth": 120,
+        "semi": false,
+        "parser": "flow"
+      }
+    ]
+  },
+  "env": {
+    "jest": true
+  }
+}

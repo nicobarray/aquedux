@@ -1,0 +1,55 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "lerna run build",
+    "clean:build": "rm -rf ./packages/*/build",
+    "clean": "rm -rf ./node_modules && yarn clean:build",
+    "lint": "eslint . --cache --ext js",
+    "publish": "lerna publish --conventional-commits",
+    "test": "yarn typecheck && yarn lint && lerna run test",
+    "typecheck": "flow check --include-warnings",
+    "watch": "lerna run --parallel watch"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.2",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-flow": "^6.23.0",
+    "eslint": "^4.18.2",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-flowtype": "^2.46.1",
+    "eslint-plugin-jest": "^21.14.0",
+    "eslint-plugin-prettier": "^2.6.0",
+    "flow-bin": "^0.67.1",
+    "flow-copy-source": "^1.3.0",
+    "husky": "^0.14.3",
+    "jest": "^22.4.2",
+    "lerna": "2.9.0",
+    "prettier": "^1.11.1"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "jsxBracketSameLine": false,
+    "printWidth": 120,
+    "semi": false,
+    "parser": "flow"
+  },
+  "babel": {
+    "presets": [
+      "es2015",
+      "flow"
+    ],
+    "plugins": [
+      "transform-object-rest-spread",
+      "babel-plugin-transform-flow-strip-types",
+      "syntax-flow"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+export const ACTION_PREFIX = 'AQUA:'
+
+export const EVENT_SEND = 'AQUA:SEND'
+export const CHANNEL_SNAPSHOT = 'AQUEDUX_CHANNEL_SNAPSHOT'
