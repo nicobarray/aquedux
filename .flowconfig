@@ -1,0 +1,10 @@
+[ignore]
+./plugins/*/build
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+emoji=true
