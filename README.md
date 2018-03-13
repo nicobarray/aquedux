@@ -2,7 +2,7 @@
 > Aquedux over the wire
 
 
-[![CI Status](https://circleci.com/gh/Winamax/aquedux.svg?style=shield)](https://circleci.com/gh/Winamax/aquedux)
+[![CI Status](https://circleci.com/gh/winamax/aquedux.svg?style=shield)](https://circleci.com/gh/Winamax/aquedux)
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
