@@ -20,7 +20,7 @@ const createAqueduxClient = (store, why, config) => {
     })
   )
 
-  let socket
+  let socket = null
   let pingIntervalId = null
   let restartTimeoutId = null
   let restartTimeoutDuration = 3000
@@ -56,7 +56,7 @@ const createAqueduxClient = (store, why, config) => {
     socket.send(JSON.stringify(action))
   }
 
-  const _handleClose = socket => {
+  const _handleClose = _socket => {
     eventHub.unregister(fromConstants.EVENT_SEND, _handleEventSend)
   }
 
@@ -102,20 +102,6 @@ const createAqueduxClient = (store, why, config) => {
 
       store.dispatch(json)
     }
-  }
-
-  const handleRestart = () => {
-    console.log('Aquedux-client re-subscribing to previous channels')
-    const subs = selectors.getSubscription(store.getState())
-    console.log('Aquedux-client', subs)
-    subs.forEach(sub => {
-      console.log('AqueduxClient::restart', sub)
-      if (sub.template) {
-        // store.dispatch(channels.subscribeToChannel(sub.name, sub.id))
-      } else {
-        // store.dispatch(channels.subscribeToChannel(sub.name))
-      }
-    })
   }
 
   const _handleOpen = (isRestart = false) => {

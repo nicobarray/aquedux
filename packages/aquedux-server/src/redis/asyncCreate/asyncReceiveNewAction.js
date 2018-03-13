@@ -1,8 +1,5 @@
 // @flow
 
-import head from 'lodash/head'
-import tail from 'lodash/tail'
-
 import { asyncQuery } from '../connections'
 import logger from '../../utils/logger'
 import { selectors } from '../../reducers'

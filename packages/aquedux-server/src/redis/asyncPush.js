@@ -1,17 +1,10 @@
 // @flow
 
-import fs from 'fs'
-
-import head from 'lodash/head'
-import tail from 'lodash/tail'
-
 import { asyncQuery } from './connections'
 import until from './until'
 import { selectors } from '../reducers'
 import actions from '../actions'
 import logger from '../utils/logger'
-import configManager from '../managers/configManager'
-import asyncSnapshotQueue from './asyncSnapshotQueue'
 import type { Store } from '../constants/types'
 
 const luaScript = `

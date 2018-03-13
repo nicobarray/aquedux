@@ -7,10 +7,10 @@ import logger from '../utils/logger'
 
 import actionTypes, { flatTypes } from '../constants/actionTypes'
 import queue, { selectors as queueSelectors } from './queue'
-import tank, { initialState as tankInitialState, selectors as tankSelectors } from './tank'
-import channels, { initialState as channelsInitialState, selectors as channelsSelectors } from './channels'
+import tank, { initialState as tankInitialState } from './tank'
+import channels, { initialState as channelsInitialState } from './channels'
 
-import type { QueueState, AqueduxState } from '../constants/types'
+import type { AqueduxState } from '../constants/types'
 
 export const initialState: AqueduxState = {
   id: v4(),

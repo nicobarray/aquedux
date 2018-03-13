@@ -9,7 +9,6 @@ import logger from './utils/logger'
 import * as fromConstants from './utils/constants'
 import * as eventHub from './utils/eventHub'
 
-import actionTypes from './constants/actionTypes'
 import { selectors } from './reducers'
 import { subscribeFromAction, unsubscribeFromAction } from './network/subscribe'
 import { forwardActionToChannelSubscribers } from './network/channels'
@@ -123,8 +122,6 @@ const statelessAction = (store: Store, next: Object => void, action: Object) => 
 }
 
 export default (store: Store) => (next: Object => void) => (action: Object) => {
-  const ownId = selectors.queue.getId(store.getState())
-
   logger.trace({
     who: 'middleware',
     action

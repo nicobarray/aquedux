@@ -1,7 +1,7 @@
 // @flow
 
 import actionTypes from '../constants/actionTypes'
-import type { AqueduxAction, ThunkedAction, Dispatch, State } from '../constants/types'
+import type { AqueduxAction } from '../constants/types'
 
 const load = (name: string, subId: string, cursor: number): AqueduxAction => ({
   type: actionTypes.queue.AQUEDUX_LOAD_QUEUE,

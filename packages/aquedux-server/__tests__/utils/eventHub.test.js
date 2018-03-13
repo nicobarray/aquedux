@@ -6,7 +6,7 @@ let data = {}
 
 const callbackFoo = () => 'foo'
 const callbackBar = () => 'bar'
-const addToData = (key, value) => args => (data[key] = value)
+const addToData = (key, value) => () => (data[key] = value)
 
 beforeEach(() => {
   clear()

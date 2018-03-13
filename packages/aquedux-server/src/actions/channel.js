@@ -1,7 +1,5 @@
 // @flow
 
-import type { Action } from '../constants/types'
-
 import actionTypes from '../constants/actionTypes'
 
 const define = (channelName: string, channelPattern: string) => {

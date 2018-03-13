@@ -2,8 +2,6 @@ import reducer, { selectors, initialState } from '../../src/reducers/queue'
 import actions from '../../src/actions'
 
 test('expect selectors to return the initialState values', () => {
-  const state = initialState
-
   expect(selectors.getName(initialState)).toBe('')
   expect(selectors.getCursor(initialState)).toBe(0)
   expect(selectors.getNotificationQueue(initialState)).toEqual([])
@@ -38,5 +36,5 @@ test('expect the getNextAction to return the first added action', () => {
   const nextState = reducer(state, actions.queue.enqueueAction('queue-id', { type: 'FOO', name: 'bar' }))
   const lastState = reducer(nextState, actions.queue.enqueueAction('queue-id', { type: 'BAR', name: 'baz' }))
 
-  expect(selectors.getNextAction(nextState)).toEqual({ type: 'FOO', name: 'bar' })
+  expect(selectors.getNextAction(lastState)).toEqual({ type: 'FOO', name: 'bar' })
 })

@@ -1,7 +1,7 @@
 // @flow
 
 // Types.
-import type { Store, State, Action, SubscriptionAction, DefinitionStateType } from '../constants/types'
+import type { Store, State, Action, SubscriptionAction } from '../constants/types'
 
 import { selectors } from '../reducers'
 import actions from '../actions'
@@ -31,23 +31,6 @@ type InternalState = {
 const internalState: InternalState = {
   channels: {},
   templates: {}
-}
-
-const findChannelForAction = (state: State, action: Action): Channel => {
-  const channel = selectors.channels
-    .listChannels(state)
-    .map(channel => internalState.channels[channel.name])
-    .find(channel => channel.predicate(action))
-
-  if (!channel) {
-    throw new Error(
-      `findChannelForAction -- Action ${
-        action.type
-      } does not match any channel. Did you call addChannel or addChannelTemplate?`
-    )
-  }
-
-  return channel
 }
 
 const findChannelNameForAction = (state: State, action: Action): string =>

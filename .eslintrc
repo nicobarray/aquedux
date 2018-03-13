@@ -4,7 +4,11 @@
     "prettier",
     "prettier/flowtype"
   ],
-  "plugins": ["flowtype", "prettier", "jest"],
+  "plugins": [
+    "flowtype",
+    "prettier",
+    "jest"
+  ],
   "rules": {
     "prettier/prettier": [
       "error",
@@ -13,6 +17,13 @@
         "printWidth": 120,
         "semi": false,
         "parser": "flow"
+      }
+    ],
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
       }
     ]
   },

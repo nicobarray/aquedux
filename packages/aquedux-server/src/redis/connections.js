@@ -57,7 +57,7 @@ export function UndefinedConnectionException(message) {
   this.name = 'UndefinedConnectionException'
 }
 
-export const duplicate = store => {
+export const duplicate = () => {
   const next = initial.duplicate()
   hookOnEvents(next)
   const id = v4()
@@ -100,9 +100,7 @@ export const asyncQuery = async query => {
     what: 'querying redis'
   })
   try {
-    // const connection = initial.duplicate()
     await query(initial)
-    // connection.quit()
   } catch (err) {
     logger.error({
       who: 'redis-driver::asyncQuery',

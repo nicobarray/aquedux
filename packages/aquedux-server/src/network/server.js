@@ -27,7 +27,6 @@ import channelManager from '../managers/channelManager'
 
 // Aquedux API.
 import { addChannel, addChannelTemplate } from './channels'
-import setStatefullTypes from './statefullTypes'
 import mapActionToChannelId from '../mapActionToChannelId'
 
 // Logic.
@@ -46,8 +45,8 @@ const createAqueduxServer = (
     queueLimit: 0,
     statefullTypes: [],
     routePrefix: '/undefined',
-    onConnection: socket => {},
-    onClose: socket => {}
+    onConnection: _socket => {},
+    onClose: _socket => {}
   }
 ) => {
   // Bind ownId to store.

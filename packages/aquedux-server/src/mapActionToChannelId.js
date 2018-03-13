@@ -3,7 +3,7 @@
 import type { Action } from './constants/types'
 
 const internalState = {
-  map: action => ''
+  map: _action => ''
 }
 
 // This action is provided by the aquedux-server configuration - therefore user-defined.

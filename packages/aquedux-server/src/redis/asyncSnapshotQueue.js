@@ -6,27 +6,28 @@ import { asyncQuery } from './connections'
 import actions from '../actions'
 import { selectors } from '../reducers'
 import logger from '../utils/logger'
-import until from './until'
 
-const luaScript = `
-local prefix = ARGV[1]
-local limit = tonumber(ARGV[2])
-local action = ARGV[3]
+// TODO: Check if this must be used.
+//
+// const luaScript = `
+// local prefix = ARGV[1]
+// local limit = tonumber(ARGV[2])
+// local action = ARGV[3]
 
-local latestFragmentIndex = redis.call('get', prefix .. '-head')
-local latestFragmentSnapshotName = prefix .. '-snap-' .. latestFragmentIndex
-local latestFragmentSnapshot = redis.call('get', latestFragmentSnapshotName)
+// local latestFragmentIndex = redis.call('get', prefix .. '-head')
+// local latestFragmentSnapshotName = prefix .. '-snap-' .. latestFragmentIndex
+// local latestFragmentSnapshot = redis.call('get', latestFragmentSnapshotName)
 
-if latestFragmentSnapshot == nil then
-    local nextFragment =  prefix .. '-frag-' .. (latestFragmentIndex + 1)
-    redis.call('rpush', nextFragment, action)
-    redis.call('incr', prefix .. '-head')
-    return 1
-else
-    redis.call('rpush', latestFragment, action)
-    return 0
-end
-`
+// if latestFragmentSnapshot == nil then
+//     local nextFragment =  prefix .. '-frag-' .. (latestFragmentIndex + 1)
+//     redis.call('rpush', nextFragment, action)
+//     redis.call('incr', prefix .. '-head')
+//     return 1
+// else
+//     redis.call('rpush', latestFragment, action)
+//     return 0
+// end
+// `
 
 const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
   asyncQuery(async connection => {

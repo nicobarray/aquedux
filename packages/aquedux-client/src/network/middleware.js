@@ -2,7 +2,7 @@ import logger from '../utils/logger'
 import * as fromConstants from '../utils/constants'
 import * as eventHub from '../utils/eventHub'
 
-const clientMiddleware = store => next => action => {
+const clientMiddleware = _store => next => action => {
   logger.trace({
     who: 'aquedux-middleware',
     what: 'intercept an action',

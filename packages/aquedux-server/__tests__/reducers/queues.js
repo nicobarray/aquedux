@@ -1,6 +1,6 @@
 import actions from '../../src/actions'
 import reducer, { initialState, selectors as queuesSelectors } from '../../src/reducers/queues'
-import queueReducer, { initialState as queueInitialState } from '../../src/reducers/queue'
+import { initialState as queueInitialState } from '../../src/reducers/queue'
 
 test('expect queue.load to add the queue to the state', () => {
   const prevState = {

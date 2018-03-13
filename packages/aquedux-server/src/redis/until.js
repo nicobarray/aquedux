@@ -1,5 +1,5 @@
 const until = async condition =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     const before = Date.now()
     let intId = setInterval(() => {
       if (condition) {

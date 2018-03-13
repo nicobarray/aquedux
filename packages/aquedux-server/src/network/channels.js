@@ -9,7 +9,6 @@ import actions from '../actions'
 import { raise as eventHubRaise } from '../utils/eventHub'
 import { EVENT_SEND_ACTION_TO_TANK } from '../utils/constants'
 import { selectors } from '../reducers'
-import { mapActionToChannelId } from '../mapActionToChannelId'
 
 // Managers.
 import channelManager from '../managers/channelManager'

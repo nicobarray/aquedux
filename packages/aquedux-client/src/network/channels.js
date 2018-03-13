@@ -9,7 +9,7 @@ export const addChannel = (store, name, reducer) => {
 
 export const subscribeToChannel = (name, id) => (dispatch, getState) => {
   const composedName = id ? name + '-' + id : name
-  const subs = selectors.getSubscription(getState())
+
   if (selectors.hasSubscription(composedName, getState())) {
     // Do not subscribe twice to the same channel.
     return
@@ -26,7 +26,7 @@ export const subscribeToChannel = (name, id) => (dispatch, getState) => {
 
 export const unsubscribeFromChannel = (name, id) => (dispatch, getState) => {
   const composedName = id ? name + '-' + id : name
-  const subs = selectors.getSubscription(getState())
+
   if (selectors.hasSubscription(composedName, getState())) {
     // Do not subscribe twice to the same channel.
     return

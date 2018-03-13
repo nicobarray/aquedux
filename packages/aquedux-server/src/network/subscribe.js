@@ -1,8 +1,5 @@
 // @flow
 
-// Library.
-import isEqual from 'lodash/isEqual'
-
 // Types.
 import type { Store, Action, SubscriptionAction } from '../constants/types'
 
@@ -15,11 +12,9 @@ import { selectors } from '../reducers'
 import until from '../redis/until'
 
 // Managers.
-import tankManager from '../managers/tankManager'
 import channelManager from '../managers/channelManager'
 
 // Logic.
-import asyncFetch from '../redis/asyncFetch'
 import asyncCreate from '../redis/asyncCreate'
 
 export const subActionToChannelName = (subAction: SubscriptionAction): string => {

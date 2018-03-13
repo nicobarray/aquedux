@@ -2,7 +2,6 @@
 
 import handleNotification from './handleNotification'
 import logger from '../../utils/logger'
-import actionTypes from '../../actionTypes'
 import actions from '../../actions'
 import { selectors } from '../../reducers'
 import { duplicate, get, asyncQuery } from '../connections'
@@ -22,7 +21,7 @@ export default async (store: Store, name: string): Promise<void> => {
     return
   }
 
-  const subId = duplicate(store)
+  const subId = duplicate()
   store.dispatch(actions.queue.load(name, subId, 0))
 
   const sub = get(subId)

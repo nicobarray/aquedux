@@ -6,9 +6,8 @@ import logger from '../utils/logger'
 
 import actions from '../actions'
 import tankManager from '../managers/tankManager'
-import { selectors } from '../reducers'
 
-import getFragmentsRoute, { getFragmentsInfo } from './routes/fragments'
+import getFragmentsRoute from './routes/fragments'
 import getFragmentRoute from './routes/fragment'
 import getChannelsRoute from './routes/channels'
 import getTanksRoute from './routes/tanks'

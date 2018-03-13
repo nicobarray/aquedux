@@ -1,5 +1,4 @@
 import actions from '../../src/actions'
-import actionTypes from '../../src/constants/actionTypes'
 
 test('expect queue load action creator to return the expected action object', () => {
   const action = actions.queue.load('wpo-beerpong', '42', 16)

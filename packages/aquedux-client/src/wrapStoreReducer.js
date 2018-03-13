@@ -1,6 +1,4 @@
 import logger from './utils/logger'
-import * as fromConstants from './utils/constants'
-import reducer from './reducers'
 
 const wrapStoreReducer = userReducers => (state, action) => {
   if (action.type === 'AQUEDUX_CHANNEL_SNAPSHOT') {

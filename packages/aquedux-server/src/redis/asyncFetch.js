@@ -5,7 +5,7 @@ import { asyncQuery } from './connections'
 import { selectors } from '../reducers'
 import logger from '../utils/logger'
 
-import type { Store, QueueState } from '../constants/types'
+import type { Store } from '../constants/types'
 
 export default async (store: Store, pattern: string): Promise<void> => {
   return asyncQuery(async connection => {

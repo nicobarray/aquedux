@@ -1,11 +1,10 @@
 // @flow
 
-import { combineReducers } from 'redux'
 import queues, { selectors as queuesSelectors } from './queues'
 import { selectors as tankSelectors } from './tank'
 import { selectors as channelsSelectors } from './channels'
 
-import type { State, AqueduxState } from '../constants/types'
+import type { State } from '../constants/types'
 
 const reducer: State = queues
 
