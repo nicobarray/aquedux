@@ -7,7 +7,8 @@
   "scripts": {
     "test": "jest",
     "build": "babel src --out-dir build",
-    "watch": "yarn build --watch"
+    "watch": "yarn build --watch",
+    "prepublishOnly": "yarn build"
   },
   "dependencies": {
     "bluebird": "^3.5.1",
