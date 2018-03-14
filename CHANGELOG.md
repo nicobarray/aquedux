@@ -6,15 +6,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 <a name="1.0.2"></a>
 ## 1.0.2 (2018-03-12)
 
-
-
-
-**Note:** Version bump only for package undefined
+**Note:** Version bump
 
 <a name="1.0.1"></a>
 ## 1.0.1 (2018-03-12)
 
-
-
-
-**Note:** Version bump only for package undefined
+**Note:** Version bump
