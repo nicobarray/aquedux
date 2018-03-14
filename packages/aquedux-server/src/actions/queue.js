@@ -46,11 +46,6 @@ const unlock = (name: string) => ({
   name
 })
 
-const setOptions = (options: any) => ({
-  type: actionTypes.queue.AQUEDUX_OPTIONS_SET,
-  options
-})
-
 const snapshot = (name: string, state: any, size: number) => ({
   type: actionTypes.queue.AQUEDUX_QUEUE_SNAPSHOT,
   name,
@@ -73,7 +68,6 @@ export default {
   dequeueAction,
   lock,
   unlock,
-  setOptions,
   snapshot,
   setCursor
 }

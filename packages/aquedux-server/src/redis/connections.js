@@ -3,15 +3,14 @@ import bluebird from 'bluebird'
 import omit from 'lodash/omit'
 import { v4 } from 'uuid'
 
+import configManager from '../managers/configManager'
+
 import logger from '../utils/logger'
 
 bluebird.promisifyAll(redis.RedisClient.prototype)
 bluebird.promisifyAll(redis.Multi.prototype)
 
 let connections = {}
-
-const port = process.env.AQUEDUX_REDIS_PORT || process.env.DB_PORT_6379_TCP_PORT || '6379'
-const host = process.env.AQUEDUX_REDIS_HOST || process.env.DB_PORT_6379_TCP_ADDR || '127.0.0.1'
 
 const retry_strategy = options => {
   if (options.attempt > 3) {
@@ -22,7 +21,9 @@ const retry_strategy = options => {
   return Math.min(options.attempt * options.attempt * 100, 3000)
 }
 
-const initial = redis.createClient(port, host, {
+const { redisHost, redisPort } = configManager.getConfig()
+
+const initial = redis.createClient(redisPort, redisHost, {
   retry_strategy
 })
 

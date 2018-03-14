@@ -12,13 +12,8 @@ import * as eventHub from '../utils/eventHub'
 import localStorage from '../utils/localStorage'
 import onAquedux from '../utils/actionWrapper'
 
-const createAqueduxClient = (store, why, config) => {
-  store.dispatch(
-    actions.config.set({
-      pingAwareActionTypes: config.pingAwareActionTypes || {},
-      timeout: config.timeout || 5000
-    })
-  )
+const createAqueduxClient = (store, why, options) => {
+  const { endpoint, timeout } = configManager.setConfig(options)
 
   let socket = null
   let pingIntervalId = null
@@ -157,7 +152,7 @@ const createAqueduxClient = (store, why, config) => {
     }, restartTimeoutDuration)
   }
 
-  const start = (endpoint, isRestart = false) => {
+  const start = (isRestart = false) => {
     if (isRestart) {
       socket.close()
       eventHub.unregister(fromConstants.EVENT_SEND, _handleEventSend)
@@ -178,12 +173,11 @@ const createAqueduxClient = (store, why, config) => {
       console.log('Restart timeout duration ', restartTimeoutDuration)
       setupRestart()
 
-      const endpoint = selectors.config.getEndpoint(store.getState())
-      start(endpoint, true)
+      start(true)
       setupPing()
     } else if (pingState === 'ok') {
       restartTimeoutDuration = 3000
-      if (delay > selectors.config.getTimeoutDelay(store.getState()) / 2) {
+      if (delay > timeout / 2) {
         store.dispatch(actions.ping.note())
         store.dispatch(onAquedux(actions.ping.send()))
       }
@@ -193,9 +187,8 @@ const createAqueduxClient = (store, why, config) => {
   }
 
   return {
-    start: endpoint => {
-      store.dispatch(actions.config.setEndpoint(endpoint))
-      start(endpoint)
+    start() {
+      start()
       setupPing()
     },
     close() {

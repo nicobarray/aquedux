@@ -3,6 +3,20 @@
 import type { Store as ReduxStore, Dispatch as ReduxDispatch } from 'redux'
 import type { AqueduxActionType } from './actionTypes'
 
+export type AqueduxConfiguration = {
+  // The action count after which the redis queue must compact itself to 1 action.
+  queueLimit?: number,
+  // The action types that should be routed to redis.
+  statefullTypes?: Array<string>,
+  routePrefix?: string,
+  secret?: string,
+  redisHost?: string,
+  redisPort?: string,
+  onConnection?: any => void,
+  onClose?: any => void,
+  doFragmentSnapshot?: any => void
+}
+
 export type QueueInnerStateType =
   // This is the queue state on the queue creation before it had time to start loading the redis content into memory.
   | 'QUEUE_STATE_CREATED'
@@ -74,11 +88,6 @@ export type ChannelsStateType = {
 export type AqueduxState = {
   id: string,
   removeQueueType: string,
-  options: {
-    queueLimit: number,
-    statefullTypes: Array<string>,
-    routePrefix: string
-  },
   queues:
     | {
         [key: string]: QueueState

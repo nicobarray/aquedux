@@ -7,30 +7,38 @@ import actions from '../actions'
 import { selectors } from '../reducers'
 import logger from '../utils/logger'
 
-// TODO: Check if this must be used.
-//
-// const luaScript = `
-// local prefix = ARGV[1]
-// local limit = tonumber(ARGV[2])
-// local action = ARGV[3]
+const { queueLimit } = configManager.getConfig()
+/*
+const luaScript = `
+local prefix = ARGV[1]
+local limit = tonumber(ARGV[2])
+local action = ARGV[3]
 
 // local latestFragmentIndex = redis.call('get', prefix .. '-head')
 // local latestFragmentSnapshotName = prefix .. '-snap-' .. latestFragmentIndex
 // local latestFragmentSnapshot = redis.call('get', latestFragmentSnapshotName)
 
-// if latestFragmentSnapshot == nil then
-//     local nextFragment =  prefix .. '-frag-' .. (latestFragmentIndex + 1)
-//     redis.call('rpush', nextFragment, action)
-//     redis.call('incr', prefix .. '-head')
-//     return 1
-// else
-//     redis.call('rpush', latestFragment, action)
-//     return 0
-// end
-// `
+if limit > 0 and latestFragmentSnapshot == nil then
+    local nextFragment =  prefix .. '-frag-' .. (latestFragmentIndex + 1)
+    redis.call('rpush', nextFragment, action)
+    redis.call('incr', prefix .. '-head')
+    return 1
+else
+    redis.call('rpush', latestFragment, action)
+    return 0
+end
+`*/
 
 const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
   asyncQuery(async connection => {
+    const { doFragmentSnapshot } = configManager.getConfig()
+    if (!doFragmentSnapshot) {
+      logger.warn({
+        who: `redis-${name}`,
+        what: 'doFragmentSnapshot method not defined. Skipping asyncSnapshotQueue...'
+      })
+      return
+    }
     try {
       store.dispatch(actions.queue.lock(name))
       // First lock (with a redis transaction) the queue.
@@ -38,8 +46,7 @@ const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
       // If not, create the next queue, increment the queue index.
       // Else, bail out of the snapshoting process.
       const cursor = selectors.queue.getCursor(store.getState(), name)
-      const limit = selectors.queue.getQueueLimit(store.getState())
-      const fragmentIndex = Math.floor(cursor / limit)
+      const fragmentIndex = queueLimit === 0 ? cursor : Math.floor(cursor / queueLimit)
       const metaName = `${name}-head`
       logger.info({
         who: 'asyncSnapshotQueue',
@@ -48,7 +55,7 @@ const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
         what: 'Try to snapshot. Creating ' + fragmentIndex + 'th queue fragment.',
         fragmentIndex,
         cursor,
-        limit
+        queueLimit
       })
       const fragmentSnapName = `${name}-snap-${fragmentIndex}`
       await connection.watchAsync([fragmentSnapName])
@@ -57,7 +64,7 @@ const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
         .multi()
         .set([
           fragmentSnapName,
-          JSON.stringify(actions.queue.snapshot(name, configManager.reduceStateToQueueSnapshot(store.getState()), size))
+          JSON.stringify(actions.queue.snapshot(name, doFragmentSnapshot(store.getState()), size))
         ])
         .execAsync()
     } catch (err) {

@@ -30,9 +30,7 @@ export const selectors = {
     hasQueue: forwardAqueduxStateAndName(queuesSelectors.hasQueue),
     isReady: forwardAqueduxStateAndName(queuesSelectors.isReady),
     isRemoveQueueType: forwardAqueduxStateAndName(queuesSelectors.isRemoveQueueType),
-    getId: forwardAqueduxState(queuesSelectors.getId),
-    getQueueLimit: forwardAqueduxState(queuesSelectors.getQueueLimit),
-    isStatefull: forwardAqueduxStateAndName(queuesSelectors.isStatefull)
+    getId: forwardAqueduxState(queuesSelectors.getId)
   },
   tank: {
     getChannels: (tankId: string, state: State) => tankSelectors.getTankChannels(tankId, state.aquedux.tanks),

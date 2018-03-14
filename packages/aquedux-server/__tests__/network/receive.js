@@ -1,10 +1,13 @@
 import jwt from 'jsonwebtoken'
 
+import configManager from '../../src/managers/configManager'
+
 import receive from '../../src/network/receive'
 import logger from '../../src/utils/logger'
-import { s3cr3t } from '../../src/utils/constants'
 
 // Data for testing.
+
+const { secret } = configManager.getConfig()
 
 const mockTank = {
   conn: {
@@ -19,7 +22,7 @@ const mockDispatch = testOnAction => action => {
 const meta = { foo: 'bar' }
 const fakeAction = {
   type: 'foo',
-  token: jwt.sign(meta, s3cr3t)
+  token: jwt.sign(meta, secret)
 }
 
 let streams
@@ -70,7 +73,7 @@ test('receive verify the token correctly', () => {
   const tank = mockTank
   const dispatch = mockDispatch(action => {
     expect(action.meta).toBeDefined()
-    const token = jwt.sign(action.meta, s3cr3t)
+    const token = jwt.sign(action.meta, secret)
     expect(token).toBe(fakeAction.token)
   })
   receive(dispatch, tank, fakeAction)

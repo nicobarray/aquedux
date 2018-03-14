@@ -14,9 +14,16 @@ import { subscribeFromAction, unsubscribeFromAction } from './network/subscribe'
 import { forwardActionToChannelSubscribers } from './network/channels'
 
 import channelManager from './managers/channelManager'
+import configManager from './managers/configManager'
 
 import asyncCreate from './redis/asyncCreate'
 import asyncPush from './redis/asyncPush'
+
+const { statefullTypes } = configManager.getConfig()
+
+const isStatefull = actionType => {
+  return statefullTypes.includes(actionType)
+}
 
 const respondToSender = action => {
   const args = {
@@ -139,10 +146,7 @@ export default (store: Store) => (next: Object => void) => (action: Object) => {
     unsubscribeFromAction(store, nextAction)
     // } else if (action.type === actionTypes.api.AQUEDUX_REMOVE_QUEUE) {
     //   deleteQueueFromAction(store, action)
-  } else if (
-    !selectors.queue.isStatefull(store.getState(), nextAction.type) ||
-    (nextAction.meta && nextAction.meta.private)
-  ) {
+  } else if (!isStatefull(nextAction.type) || (nextAction.meta && nextAction.meta.private)) {
     // A stateless action, therefore we reduce it and send it back
     // to its sender.
     // Those actions handle user-specific logic: role, ping, etc.
