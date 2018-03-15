@@ -1,0 +1,16 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "devDependencies": {
+    "nodemon": "1.17.2"
+  },
+  "dependencies": {
+    "aquedux-client": "1.0.2",
+    "redux": "3.7.2"
+  }
+}

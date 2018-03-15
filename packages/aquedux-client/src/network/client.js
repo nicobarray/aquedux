@@ -12,7 +12,13 @@ import * as eventHub from '../utils/eventHub'
 import localStorage from '../utils/localStorage'
 import onAquedux from '../utils/actionWrapper'
 
-const createAqueduxClient = (store, why, config) => {
+/**
+ * Bind a new client instance with the app's redux store.
+ *
+ * @param store The redux store.
+ * @param config The configuration object.
+ */
+const createAqueduxClient = (store, config = {}) => {
   store.dispatch(
     actions.config.set({
       pingAwareActionTypes: config.pingAwareActionTypes || {},
@@ -41,6 +47,7 @@ const createAqueduxClient = (store, why, config) => {
         what: 'the socket is null. stacking.',
         type: action.type
       })
+
       actionStack.push(action)
       return
     }

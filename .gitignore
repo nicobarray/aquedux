@@ -3,9 +3,8 @@
 .eslintcache
 *.swp
 *~
-/examples/*/node_modules/
 
-/node_modules
+**/node_modules/**
 
 /packages/*/build/
 /packages/*/node_modules/
