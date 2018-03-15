@@ -12,7 +12,7 @@ import * as eventHub from '../utils/eventHub'
 import localStorage from '../utils/localStorage'
 import onAquedux from '../utils/actionWrapper'
 
-const createAqueduxClient = (store, why, options) => {
+const createAqueduxClient = (store, options) => {
   const { endpoint, timeout } = configManager.setConfig(options)
 
   let socket = null
