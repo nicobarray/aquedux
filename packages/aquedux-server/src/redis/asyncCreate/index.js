@@ -8,7 +8,11 @@ import { duplicate, get, asyncQuery } from '../connections'
 import until from '../until'
 import getsetLatestFragmentIndexAsync from './getsetLatestFragmentIndexAsync'
 
+import configManager from '../../managers/configManager'
+
 import type { Store } from '../../constants/types'
+
+const { queueLimit } = configManager.getConfig()
 
 // Create a queue, load it from redis (or create it) and
 // register itself to the store. To call only if the queue does not exists
@@ -69,15 +73,14 @@ export default async (store: Store, name: string): Promise<void> => {
         fragment of 2 element, the initial cursor equals 17. 
       */
       const fragmentLength = await connection.llenAsync(latestFragmentName)
-      const limit = selectors.queue.getQueueLimit(store.getState())
-      const initialCursor = queueLength * limit + parseInt(fragmentLength, 10)
+      const initialCursor = queueLength * queueLimit + parseInt(fragmentLength, 10)
       logger.debug({
         who: `redis-${name}`,
         what: 'load latest fragment',
         latestFragmentName,
         latestFragmentLength: fragmentLength,
         initialCursor,
-        limit
+        queueLimit
       })
       store.dispatch(actions.queue.setCursor(name, initialCursor))
 
@@ -115,7 +118,8 @@ export default async (store: Store, name: string): Promise<void> => {
 
   // Just for logging.
   const duration = await until(() => selectors.queue.isReady(store.getState(), name))
-  const length = selectors.queue.getCursor(store.getState(), name) % selectors.queue.getQueueLimit(store.getState())
+  const cursor = selectors.queue.getCursor(store.getState(), name)
+  const length = queueLimit === 0 ? cursor : cursor % queueLimit
   logger.debug({
     who: `queue-${name}`,
     what: `reducing this queue took ${duration} milliseconds for ${length} actions`

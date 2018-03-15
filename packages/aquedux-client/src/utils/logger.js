@@ -1,6 +1,6 @@
 import bunyan from 'bunyan'
 
-const level = process.env.REACT_APP_AQUEDUX_BUNYAN_LEVEL || 'info'
+const level = process.env.AQUEDUX_LOG_LEVEL || 'info'
 
 const logger = bunyan.createLogger({
   name: 'aquedux-tank',

@@ -14,6 +14,7 @@
     "bluebird": "^3.5.1",
     "bunyan": "^1.8.5",
     "jsonwebtoken": "^7.3.0",
+    "keygenerator": "^1.0.4",
     "lodash": "^4.17.4",
     "rambda": "^0.9.3",
     "redis": "^2.7.1",
@@ -21,5 +22,8 @@
     "redux": "^3.6.0",
     "sockjs": "^0.3.18",
     "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "jest": "^22.4.2"
   }
 }

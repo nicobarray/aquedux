@@ -7,6 +7,10 @@ import actions from '../../actions'
 import type { Store } from '../../constants/types'
 import asyncSnapshotQueue from '../asyncSnapshotQueue'
 
+import configManager from '../../managers/configManager'
+
+const { queueLimit } = configManager.getConfig()
+
 const asyncReceiveNewAction = async (store: Store, name: string) =>
   asyncQuery(async connection => {
     logger.debug({
@@ -19,11 +23,10 @@ const asyncReceiveNewAction = async (store: Store, name: string) =>
     store.dispatch(actions.queue.dequeueNotification(name))
 
     let res = ''
-    const limit = selectors.queue.getQueueLimit(store.getState())
-    const prevFragmentIndex = actionIndex === 0 ? 0 : Math.floor((actionIndex - 1) / limit)
-    const fragmentIndex = actionIndex === 0 ? 0 : Math.floor(actionIndex / limit)
+    const prevFragmentIndex = actionIndex === 0 || queueLimit === 0 ? 0 : Math.floor((actionIndex - 1) / queueLimit)
+    const fragmentIndex = actionIndex === 0 || queueLimit === 0 ? 0 : Math.floor(actionIndex / queueLimit)
     const fragmentName = `${name}-frag-${fragmentIndex}`
-    const fragmentActionIndex = actionIndex % limit
+    const fragmentActionIndex = queueLimit === 0 ? actionIndex : actionIndex % queueLimit
     try {
       res = await connection.lindexAsync([fragmentName, fragmentActionIndex])
       const action = JSON.parse(res)
@@ -58,7 +61,7 @@ const asyncReceiveNewAction = async (store: Store, name: string) =>
         err,
         res,
         actionIndex,
-        limit,
+        queueLimit,
         fragmentIndex,
         fragmentName,
         fragmentActionIndex

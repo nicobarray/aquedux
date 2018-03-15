@@ -5,7 +5,11 @@ import until from './until'
 import { selectors } from '../reducers'
 import actions from '../actions'
 import logger from '../utils/logger'
+
+import configManager from '../managers/configManager'
 import type { Store } from '../constants/types'
+
+const { queueLimit } = configManager.getConfig()
 
 const luaScript = `
   local prefix = ARGV[1]
@@ -16,7 +20,7 @@ const luaScript = `
   local latestFragment = prefix .. '-frag-' .. latestFragmentIndex
   local latestFragmentLength = tonumber(redis.call('llen', latestFragment))
   
-  if latestFragmentLength == limit then
+  if limit > 0 and latestFragmentLength == limit then
       local nextFragment =  prefix .. '-frag-' .. (latestFragmentIndex + 1)
       redis.call('rpush', nextFragment, action)
       redis.call('incr', prefix .. '-head')
@@ -34,8 +38,7 @@ const asyncPushToRedis = async (store: Store, name: string, action: Object) =>
       // to the correct fragment.
 
       // Do this atomically.
-      const limit = selectors.queue.getQueueLimit(store.getState())
-      const ret = await connection.evalAsync(luaScript, 0, name, limit, JSON.stringify(action))
+      const ret = await connection.evalAsync(luaScript, 0, name, queueLimit, JSON.stringify(action))
 
       logger.debug({
         who: name,

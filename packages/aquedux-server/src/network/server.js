@@ -3,16 +3,6 @@
 // Types.
 import type { Store } from '../constants/types'
 
-type AqueduxConfiguration = {
-  // The action count after which the redis queue must compact itself to 1 action.
-  queueLimit: number,
-  // The action types that should be routed to redis.
-  statefullTypes: Array<string>,
-  routePrefix: string,
-  onConnection: any => void,
-  onClose: any => void
-}
-
 // Helpers.
 import * as fromConstants from '../utils/constants'
 import * as eventHub from '../utils/eventHub'
@@ -24,6 +14,7 @@ import { selectors } from '../reducers'
 // Managers.
 import tankManager from '../managers/tankManager'
 import channelManager from '../managers/channelManager'
+import configManager from '../managers/configManager'
 
 // Aquedux API.
 import { addChannel, addChannelTemplate } from './channels'
@@ -39,33 +30,17 @@ export const getOwnId = () => {
   return ownId()
 }
 
-const createAqueduxServer = (
-  store: Store,
-  options: AqueduxConfiguration = {
-    queueLimit: 0,
-    statefullTypes: [],
-    routePrefix: '/undefined',
-    onConnection: _socket => {},
-    onClose: _socket => {}
-  }
-) => {
+const createAqueduxServer = (store: Store, options: any = {}) => {
+  const { onConnection, onClose, routePrefix } = configManager.setConfig(options)
+
   // Bind ownId to store.
   ownId = () => selectors.queue.getId(store.getState())
-
-  // Apply options.
-  store.dispatch(actions.queue.setOptions(options))
 
   const handleMessage = (tankId, action) => {
     receive(store.dispatch, tankId, action)
   }
 
-  const socketServer = createSocketServer(
-    store,
-    options.onConnection,
-    options.onClose,
-    handleMessage,
-    options.routePrefix
-  )
+  const socketServer = createSocketServer(store, onConnection, onClose, handleMessage, routePrefix)
 
   // This event is for sending data to a single tank.
   eventHub.register(fromConstants.EVENT_SEND_ACTION_TO_TANK, args => {

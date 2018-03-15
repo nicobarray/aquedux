@@ -1,14 +1,17 @@
+import configManager from '../../managers/configManager'
 import { selectors } from '../../reducers'
+
+const { queueLimit } = configManager.getConfig()
 
 export const getFragmentsInfo = store => {
   const queueNames = Object.keys(selectors.queue.listQueues(store.getState()))
+  const cursor = selectors.queue.getCursor(store.getState(), channelName)
+  const index = queueLimit === 0 ? 0 : Math.floor(cursor / queueLimit)
 
   return JSON.stringify({
     fragments: queueNames.map(name => ({
       name,
-      index: Math.floor(
-        selectors.queue.getCursor(store.getState(), name) / selectors.queue.getQueueLimit(store.getState())
-      )
+      index
     }))
   })
 }

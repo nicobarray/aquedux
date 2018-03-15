@@ -1,15 +1,18 @@
 import omit from 'lodash/omit'
 import jwt from 'jsonwebtoken'
 
+import configManager from '../../src/managers/configManager'
+
 import logger from '../utils/logger'
-import { s3cr3t } from '../utils/constants'
+
+const { secret } = configManager.getConfig()
 
 const receive = (dispatch, tankId, action) => {
   let meta = {}
 
   if (action.token) {
     try {
-      meta = jwt.verify(action.token, s3cr3t)
+      meta = jwt.verify(action.token, secret)
     } catch (err) {
       logger.error({ what: 'jwt', who: 'receive', err })
     }

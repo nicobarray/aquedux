@@ -74,11 +74,6 @@ export type ChannelsStateType = {
 export type AqueduxState = {
   id: string,
   removeQueueType: string,
-  options: {
-    queueLimit: number,
-    statefullTypes: Array<string>,
-    routePrefix: string
-  },
   queues:
     | {
         [key: string]: QueueState

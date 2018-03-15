@@ -1,41 +1,23 @@
 import actionTypes from '../constants/actionTypes'
 
+import configManager from '../managers/configManagers'
+
 export const initialState = {
   definitions: {},
   subscription: [],
   pongTimestamp: Date.now(),
   pingTimestamp: Date.now(),
-  pingState: 'ok',
-  config: {
-    pingAwareActionTypes: {},
-    timeout: 5000,
-    endpoint: undefined
-  }
+  pingState: 'ok'
+}
+const { pingAwareActionTypes, timeout } = configManager.getConfig()
+
+const isPingAwareActionType = actionType => {
+  const internalActionTypes = [actionTypes.AQUEDUX_PING, actionTypes.AQUEDUX_CHANNEL_SNAPSHOT]
+
+  return internalActionTypes.indexOf(actionType) !== -1 || pingAwareActionTypes.indexOf(actionType) !== -1
 }
 
 const reducer = (prevState = initialState, action) => {
-  if (action.type === actionTypes.AQUEDUX_CLIENT_SET_CONFIG) {
-    return {
-      ...prevState,
-      config: {
-        pingAwareActionTypes: {
-          ...action.config.pingAwareActionTypes,
-          AQUEDUX_PING: 'AQUEDUX_PING',
-          AQUEDUX_CHANNEL_SNAPSHOT: 'AQUEDUX_CHANNEL_SNAPSHOT'
-        },
-        timeout: action.config.timeout
-      }
-    }
-  }
-  if (action.type === actionTypes.AQUEDUX_CLIENT_SET_ENDPOINT) {
-    return {
-      ...prevState,
-      config: {
-        ...prevState.config,
-        endpoint: action.endpoint
-      }
-    }
-  }
   if (action.type === actionTypes.AQUEDUX_CLIENT_DEFINE_CHANNEL) {
     return {
       ...prevState,
@@ -63,7 +45,7 @@ const reducer = (prevState = initialState, action) => {
     }
   }
   if (prevState.pingState !== 'restart') {
-    if (prevState.config.pingAwareActionTypes.hasOwnProperty(action.type)) {
+    if (isPingAwareActionType(action.type)) {
       return {
         ...prevState,
         pongTimestamp: action.timestamp
@@ -74,7 +56,7 @@ const reducer = (prevState = initialState, action) => {
       return {
         ...prevState,
         pingTimestamp: action.timestamp,
-        pingState: delta > prevState.config.timeout ? 'ko' : 'ok'
+        pingState: delta > timeout ? 'ko' : 'ok'
       }
     }
     if (action.type === actionTypes.AQUEDUX_PING_RESTART) {
@@ -87,7 +69,7 @@ const reducer = (prevState = initialState, action) => {
     }
   } else {
     // During restart, if any action returns from the server, then we are connected.
-    if (prevState.config.pingAwareActionTypes.hasOwnProperty(action.type)) {
+    if (isPingAwareActionType(action.type)) {
       return {
         ...prevState,
         pongTimestamp: action.timestamp,
@@ -115,9 +97,5 @@ export const selectors = {
   ping: {
     getLastTimestamp: state => state.aquedux.pongTimestamp,
     getPingState: state => state.aquedux.pingState
-  },
-  config: {
-    getEndpoint: state => state.aquedux.config.endpoint,
-    getTimeoutDelay: state => state.aquedux.config.timeout
   }
 }

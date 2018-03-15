@@ -15,11 +15,6 @@ import type { AqueduxState } from '../constants/types'
 export const initialState: AqueduxState = {
   id: v4(),
   removeQueueType: '',
-  options: {
-    queueLimit: 0,
-    statefullTypes: [],
-    routePrefix: '/undefined'
-  },
   queues: {},
   tanks: tankInitialState,
   channels: channelsInitialState
@@ -45,12 +40,6 @@ const reducer = reducr.default(initialState, {
     return {
       ...prevState,
       removeQueueType: action.typeToSet
-    }
-  },
-  [actionTypes.queue.AQUEDUX_OPTIONS_SET]: (prevState, action) => {
-    return {
-      ...prevState,
-      options: action.options
     }
   },
   default: (prevState, action) => {
@@ -117,8 +106,5 @@ export const selectors = {
   getId: (state: AqueduxState) => {
     return state.id
   },
-  isRemoveQueueType: (state: AqueduxState, type: string): boolean => type === state.removeQueueType,
-  isStatefull: (state: AqueduxState, actionType: string): boolean => state.options.statefullTypes.includes(actionType),
-  getQueueLimit: (state: AqueduxState): number => state.options.queueLimit,
-  getRoutePrefix: (state: AqueduxState): string => state.options.routePrefix
+  isRemoveQueueType: (state: AqueduxState, type: string): boolean => type === state.removeQueueType
 }
