@@ -8,6 +8,7 @@ import { selectors } from '../reducers'
 import logger from '../utils/logger'
 
 const { queueLimit } = configManager.getConfig()
+// TODO: Check if this must be used.
 /*
 const luaScript = `
 local prefix = ARGV[1]
