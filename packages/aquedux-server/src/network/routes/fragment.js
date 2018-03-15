@@ -8,7 +8,7 @@ export default (store, route) => (req, res) => {
   try {
     res.writeHead(200, { 'Content-Type': 'application/json' })
     const cursor = selectors.queue.getCursor(store.getState(), channelName)
-    const fragmentIndex = queueLimit === 0 ? cursor : Math.floor(cursor / queueLimit)
+    const fragmentIndex = queueLimit === 0 ? 0 : Math.floor(cursor / queueLimit)
     res.end(
       JSON.stringify({
         fragment: { name: channelName, index: fragmentIndex }

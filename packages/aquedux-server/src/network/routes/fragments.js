@@ -6,7 +6,7 @@ const { queueLimit } = configManager.getConfig()
 export const getFragmentsInfo = store => {
   const queueNames = Object.keys(selectors.queue.listQueues(store.getState()))
   const cursor = selectors.queue.getCursor(store.getState(), channelName)
-  const index = queueLimit === 0 ? cursor : Math.floor(cursor / queueLimit)
+  const index = queueLimit === 0 ? 0 : Math.floor(cursor / queueLimit)
 
   return JSON.stringify({
     fragments: queueNames.map(name => ({

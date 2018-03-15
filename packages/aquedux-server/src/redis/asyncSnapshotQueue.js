@@ -46,7 +46,7 @@ const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
       // If not, create the next queue, increment the queue index.
       // Else, bail out of the snapshoting process.
       const cursor = selectors.queue.getCursor(store.getState(), name)
-      const fragmentIndex = queueLimit === 0 ? cursor : Math.floor(cursor / queueLimit)
+      const fragmentIndex = queueLimit === 0 ? 0 : Math.floor(cursor / queueLimit)
       const metaName = `${name}-head`
       logger.info({
         who: 'asyncSnapshotQueue',
