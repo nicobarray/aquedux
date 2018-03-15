@@ -1,7 +1,7 @@
 // @flow
 
 // Types.
-import type { Store, AqueduxConfiguration } from '../constants/types'
+import type { Store } from '../constants/types'
 
 // Helpers.
 import * as fromConstants from '../utils/constants'
@@ -30,7 +30,7 @@ export const getOwnId = () => {
   return ownId()
 }
 
-const createAqueduxServer = (store: Store, options: AqueduxConfiguration = {}) => {
+const createAqueduxServer = (store: Store, options: any = {}) => {
   const { onConnection, onClose, routePrefix } = configManager.setConfig(options)
 
   // Bind ownId to store.
