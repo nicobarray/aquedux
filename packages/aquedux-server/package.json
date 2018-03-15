@@ -1,6 +1,6 @@
 {
   "name": "aquedux-server",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "main": "build/index.js",
   "repository": "https://github.com/winamax/aquedux",
   "license": "MIT",
@@ -8,7 +8,7 @@
     "test": "jest",
     "build": "babel src --out-dir build",
     "watch": "yarn build --watch",
-    "prepublish": "yarn build"
+    "prepublishOnly": "yarn build"
   },
   "dependencies": {
     "bluebird": "^3.5.1",
