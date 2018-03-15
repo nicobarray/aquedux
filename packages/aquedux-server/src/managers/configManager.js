@@ -30,6 +30,11 @@ export type AqueduxConfig = typeof config
 const setConfig = (newConfig: any): AqueduxConfig => {
   config = Object.keys(newConfig).reduce((result, key) => {
     if (!config.hasOwnProperty(key)) {
+      logger.warn({
+        who: 'configManager',
+        what: 'Unkown config key',
+        key
+      })
       return result
     }
     const merged: AqueduxConfig = {
