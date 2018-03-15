@@ -33,13 +33,6 @@ end
 const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
   asyncQuery(async connection => {
     const { doFragmentSnapshot } = configManager.getConfig()
-    if (!doFragmentSnapshot) {
-      logger.warn({
-        who: `redis-${name}`,
-        what: 'doFragmentSnapshot method not defined. Skipping asyncSnapshotQueue...'
-      })
-      return
-    }
     try {
       store.dispatch(actions.queue.lock(name))
       // First lock (with a redis transaction) the queue.

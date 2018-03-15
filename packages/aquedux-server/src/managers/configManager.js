@@ -27,6 +27,15 @@ let config = {
 
 export type AqueduxConfig = typeof config
 
+const configValidate = (config_: AqueduxConfig) => {
+  if (config_.queueLimit > 0 && !config_.doFragmentSnapshot) {
+    logger.fatalExit(1, {
+      who: 'configManager',
+      what: 'Invalid config: doFragmentSnapshot handler should be defined if queueLimit > 0'
+    })
+  }
+}
+
 const setConfig = (newConfig: any): AqueduxConfig => {
   config = Object.keys(newConfig).reduce((result, key) => {
     if (!config.hasOwnProperty(key)) {
@@ -48,6 +57,7 @@ const setConfig = (newConfig: any): AqueduxConfig => {
     what: 'config has been set',
     config
   })
+  configValidate(config)
   return config
 }
 
