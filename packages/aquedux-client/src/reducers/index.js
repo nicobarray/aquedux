@@ -14,7 +14,7 @@ const { pingAwareActionTypes, timeout } = configManager.getConfig()
 const isPingAwareActionType = actionType => {
   const internalActionTypes = [actionTypes.AQUEDUX_PING, actionTypes.AQUEDUX_CHANNEL_SNAPSHOT]
 
-  return internalActionTypes.includes(actionType) || pingAwareActionTypes.includes(actionType)
+  return internalActionTypes.indexOf(actionType) !== -1 || pingAwareActionTypes.indexOf(actionType) !== -1
 }
 
 const reducer = (prevState = initialState, action) => {

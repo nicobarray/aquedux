@@ -22,7 +22,7 @@ import asyncPush from './redis/asyncPush'
 const { statefullTypes } = configManager.getConfig()
 
 const isStatefull = actionType => {
-  return statefullTypes.includes(actionType)
+  return statefullTypes.indexOf(actionType) === -1
 }
 
 const respondToSender = action => {
