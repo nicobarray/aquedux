@@ -9,8 +9,6 @@ import asyncSnapshotQueue from '../asyncSnapshotQueue'
 
 import configManager from '../../managers/configManager'
 
-const { queueLimit } = configManager.getConfig()
-
 const asyncReceiveNewAction = async (store: Store, name: string) =>
   asyncQuery(async connection => {
     logger.debug({
@@ -19,6 +17,7 @@ const asyncReceiveNewAction = async (store: Store, name: string) =>
       order: selectors.queue.getNotificationQueue(store.getState(), name)
     })
 
+    const { queueLimit } = configManager.getConfig()
     const actionIndex = selectors.queue.getNextNotification(store.getState(), name)
     store.dispatch(actions.queue.dequeueNotification(name))
 

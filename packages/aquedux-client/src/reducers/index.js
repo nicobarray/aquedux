@@ -1,6 +1,6 @@
 import actionTypes from '../constants/actionTypes'
 
-import configManager from '../managers/configManagers'
+import configManager from '../managers/configManager'
 
 export const initialState = {
   definitions: {},

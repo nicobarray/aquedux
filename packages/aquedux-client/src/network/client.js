@@ -2,6 +2,7 @@ import reverse from 'lodash/reverse'
 
 import createSocketClient from './socketClient'
 import channelManager from '../managers/channelManager'
+import configManager from '../managers/configManager'
 import { addChannel, subscribeToChannel } from '../network/channels'
 import { selectors } from '../reducers'
 import actions from '../actions'

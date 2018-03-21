@@ -19,9 +19,8 @@ import configManager from './managers/configManager'
 import asyncCreate from './redis/asyncCreate'
 import asyncPush from './redis/asyncPush'
 
-const { statefullTypes } = configManager.getConfig()
-
 const isStatefull = actionType => {
+  const { statefullTypes } = configManager.getConfig()
   return statefullTypes.indexOf(actionType) !== -1
 }
 

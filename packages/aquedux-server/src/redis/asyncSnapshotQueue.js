@@ -7,7 +7,6 @@ import actions from '../actions'
 import { selectors } from '../reducers'
 import logger from '../utils/logger'
 
-const { queueLimit } = configManager.getConfig()
 // TODO: Check if this must be used.
 /*
 const luaScript = `
@@ -32,7 +31,7 @@ end
 
 const asyncSnapshotQueue = async (store: Store, name: string, size: number) =>
   asyncQuery(async connection => {
-    const { doFragmentSnapshot } = configManager.getConfig()
+    const { doFragmentSnapshot, queueLimit } = configManager.getConfig()
     try {
       store.dispatch(actions.queue.lock(name))
       // First lock (with a redis transaction) the queue.
