@@ -1,6 +1,7 @@
 import logger from '../utils/logger'
 import * as fromConstants from '../utils/constants'
 import * as eventHub from '../utils/eventHub'
+import configManager from '../managers/configManager'
 
 const clientMiddleware = _store => next => action => {
   logger.trace({
@@ -9,19 +10,16 @@ const clientMiddleware = _store => next => action => {
     data: action
   })
 
+  const { actionTypes } = configManager.getConfig()
   // If the action's type is prefixed with AQUA: then dispatch it over Aquedux.
-  if (action.type.indexOf(fromConstants.ACTION_PREFIX) === 0) {
-    const water = {
-      ...action,
-      type: action.type.substring(5)
-    }
+  if (actionTypes.indexOf(action.type) !== -1) {
     logger.trace({
       who: 'aquedux-middleware',
       what: 'dispatch action over aquedux',
       data: water
     })
 
-    eventHub.raise(fromConstants.EVENT_SEND, water)
+    eventHub.raise(fromConstants.EVENT_SEND, action)
   } else {
     return next(action)
   }

@@ -4,6 +4,7 @@ import logger from '../utils/logger'
 
 let config = {
   pingAwareActionTypes: [],
+  actionTypes: [],
   timeout: 5000,
   endpoint: '127.0.0.1'
 }
