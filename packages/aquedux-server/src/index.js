@@ -4,7 +4,6 @@ import aqueduxMiddleware from './middleware'
 import aqueduxActions from './actions/api'
 import onAquedux, { privateAnswer } from './utils/actionWrapper'
 import { getChannelsOf } from './network/channels'
-import registerActions from './statefullTypes'
 import actionTypes from './actionTypes'
 import wrapStoreReducer from './wrapStoreReducer'
 import { subscribeToPrivateChannel } from './network/subscribe'
@@ -20,7 +19,6 @@ export {
   privateAnswer,
   subscribeToPrivateChannel,
   getChannelsOf,
-  registerActions,
   actionTypes,
   wrapStoreReducer,
   getFragmentsInfo,

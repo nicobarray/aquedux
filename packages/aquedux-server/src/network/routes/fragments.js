@@ -1,9 +1,8 @@
 import configManager from '../../managers/configManager'
 import { selectors } from '../../reducers'
 
-const { queueLimit } = configManager.getConfig()
-
 export const getFragmentsInfo = store => {
+  const { queueLimit } = configManager.getConfig()
   const queueNames = Object.keys(selectors.queue.listQueues(store.getState()))
   const cursor = selectors.queue.getCursor(store.getState(), channelName)
   const index = queueLimit === 0 ? 0 : Math.floor(cursor / queueLimit)

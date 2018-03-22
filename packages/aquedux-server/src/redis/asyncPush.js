@@ -9,8 +9,6 @@ import logger from '../utils/logger'
 import configManager from '../managers/configManager'
 import type { Store } from '../constants/types'
 
-const { queueLimit } = configManager.getConfig()
-
 const luaScript = `
   local prefix = ARGV[1]
   local limit = tonumber(ARGV[2])
@@ -32,6 +30,7 @@ const luaScript = `
 
 const asyncPushToRedis = async (store: Store, name: string, action: Object) =>
   asyncQuery(async connection => {
+    const { queueLimit } = configManager.getConfig()
     try {
       // Here the cursor lags behind the real cursor, so we cannot based the fragmentName on it.
       // We need to check, atomically, what is the latest fragment, check its lenght, then rpush
