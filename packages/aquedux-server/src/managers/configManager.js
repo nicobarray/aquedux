@@ -6,7 +6,7 @@ import logger from '../utils/logger'
 
 let config = {
   queueLimit: 0,
-  statefullTypes: [],
+  hydratedActionTypes: [],
   routePrefix: '/aquedux',
   /**
    * A new JWT secret is generated at each start.

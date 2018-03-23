@@ -19,10 +19,10 @@ import configManager from './managers/configManager'
 import asyncCreate from './redis/asyncCreate'
 import asyncPush from './redis/asyncPush'
 
-const { statefullTypes } = configManager.getConfig()
+const { hydratedActionTypes } = configManager.getConfig()
 
 const isStatefull = actionType => {
-  return statefullTypes.indexOf(actionType) !== -1
+  return hydratedActionTypes.indexOf(actionType) !== -1
 }
 
 const respondToSender = action => {

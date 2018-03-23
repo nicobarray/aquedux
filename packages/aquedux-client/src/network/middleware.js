@@ -10,9 +10,9 @@ const clientMiddleware = _store => next => action => {
     data: action
   })
 
-  const { actionTypes } = configManager.getConfig()
-  // If the action's type is prefixed with AQUA: then dispatch it over Aquedux.
-  if (actionTypes.indexOf(action.type) !== -1) {
+  const { hydratedActionTypes } = configManager.getConfig()
+  // Dispatch it over Aquedux if needed.
+  if (hydratedActionTypes.indexOf(action.type) !== -1) {
     logger.trace({
       who: 'aquedux-middleware',
       what: 'dispatch action over aquedux',
