@@ -1,13 +1,12 @@
 import omit from 'lodash/omit'
 import jwt from 'jsonwebtoken'
 
-import configManager from '../../src/managers/configManager'
+import configManager from '../managers/configManager'
 
 import logger from '../utils/logger'
 
-const { secret } = configManager.getConfig()
-
 const receive = (dispatch, tankId, action) => {
+  const { secret } = configManager.getConfig()
   let meta = {}
 
   if (action.token) {

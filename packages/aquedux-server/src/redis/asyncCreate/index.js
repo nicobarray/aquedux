@@ -12,8 +12,6 @@ import configManager from '../../managers/configManager'
 
 import type { Store } from '../../constants/types'
 
-const { queueLimit } = configManager.getConfig()
-
 // Create a queue, load it from redis (or create it) and
 // register itself to the store. To call only if the queue does not exists
 // yet. Else, you'll have duplicated notifications and invalid state.
@@ -25,6 +23,7 @@ export default async (store: Store, name: string): Promise<void> => {
     return
   }
 
+  const { queueLimit } = configManager.getConfig()
   const subId = duplicate()
   store.dispatch(actions.queue.load(name, subId, 0))
 

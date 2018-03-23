@@ -19,9 +19,8 @@ import configManager from './managers/configManager'
 import asyncCreate from './redis/asyncCreate'
 import asyncPush from './redis/asyncPush'
 
-const { hydratedActionTypes } = configManager.getConfig()
-
 const isStatefull = actionType => {
+  const { hydratedActionTypes } = configManager.getConfig()
   return hydratedActionTypes.indexOf(actionType) !== -1
 }
 

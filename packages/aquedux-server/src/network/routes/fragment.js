@@ -1,9 +1,8 @@
 import configManager from '../../managers/configManager'
 import { selectors } from '../../reducers'
 
-const { queueLimit } = configManager.getConfig()
-
 export default (store, route) => (req, res) => {
+  const { queueLimit } = configManager.getConfig()
   const channelName = req.url.substr((route + '/fragments/').length)
   try {
     res.writeHead(200, { 'Content-Type': 'application/json' })

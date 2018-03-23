@@ -21,6 +21,7 @@ const retry_strategy = options => {
   return Math.min(options.attempt * options.attempt * 100, 3000)
 }
 
+//TODO Maybe move it to a function called after initial config
 const { redisHost, redisPort } = configManager.getConfig()
 
 const initial = redis.createClient(redisPort, redisHost, {
