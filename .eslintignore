@@ -1,4 +1,5 @@
 **/node_modules/**
 #flow-typed/**
 packages/*/build/**
+examples/**/build/**
 !.eslintrc.js

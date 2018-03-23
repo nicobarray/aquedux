@@ -9,12 +9,12 @@ export const initialState = {
   pingTimestamp: Date.now(),
   pingState: 'ok'
 }
-const { pingAwareActionTypes, timeout } = configManager.getConfig()
+const { hydratedActionTypes, timeout } = configManager.getConfig()
 
 const isPingAwareActionType = actionType => {
   const internalActionTypes = [actionTypes.AQUEDUX_PING, actionTypes.AQUEDUX_CHANNEL_SNAPSHOT]
 
-  return internalActionTypes.indexOf(actionType) !== -1 || pingAwareActionTypes.indexOf(actionType) !== -1
+  return internalActionTypes.indexOf(actionType) !== -1 || hydratedActionTypes.indexOf(actionType) !== -1
 }
 
 const reducer = (prevState = initialState, action) => {
