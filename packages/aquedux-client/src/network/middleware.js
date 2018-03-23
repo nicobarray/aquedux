@@ -16,7 +16,7 @@ const clientMiddleware = _store => next => action => {
     logger.trace({
       who: 'aquedux-middleware',
       what: 'dispatch action over aquedux',
-      data: water
+      data: action
     })
 
     eventHub.raise(fromConstants.EVENT_SEND, action)
