@@ -15,28 +15,20 @@ export const subscribeToChannel = (name, id) => (dispatch, getState) => {
     return
   }
 
-  console.log('AqueduxClient::subscribe', composedName, id)
+  console.log('AqueduxClient::subscribe', name, id)
 
-  dispatch(actions.channels.join(composedName, id))
-  dispatch({
-    type: 'AQUA:SUB:' + name,
-    id
-  })
+  dispatch(actions.channels.join(name, id))
 }
 
 export const unsubscribeFromChannel = (name, id) => (dispatch, getState) => {
   const composedName = id ? name + '-' + id : name
 
-  if (selectors.hasSubscription(composedName, getState())) {
-    // Do not subscribe twice to the same channel.
+  if (!selectors.hasSubscription(composedName, getState())) {
+    // Do not unsubscribe to unsubscribed channel.
     return
   }
 
-  console.log('AqueduxClient::unsubscribe', key, dataType, id)
+  console.log('AqueduxClient::unsubscribe', name, id)
 
-  dispatch(actions.channels.leave(composedName, id))
-  dispatch({
-    type: 'AQUA:UNSUB:' + dataType,
-    id
-  })
+  dispatch(actions.channels.leave(name, id))
 }

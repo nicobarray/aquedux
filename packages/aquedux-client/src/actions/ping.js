@@ -1,7 +1,7 @@
 import actionTypes from '../constants/actionTypes'
 
 const send = () => ({
-  type: actionTypes.AQUEDUX_PING,
+  type: actionTypes.AQUEDUX_CLIENT_PING,
   timestamp: Date.now()
 })
 
