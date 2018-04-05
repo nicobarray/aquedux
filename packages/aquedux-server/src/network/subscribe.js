@@ -18,9 +18,9 @@ import channelManager from '../managers/channelManager'
 import asyncCreate from '../redis/asyncCreate'
 
 export const subActionToChannelName = (subAction: SubscriptionAction): string => {
-  const channelPrefix = subAction.type.substr(4)
+  const channelPrefix = subAction.name
   if (subAction.id) {
-    return channelPrefix + '-' + subAction.id
+    return `${channelPrefix}-${subAction.id}`
   }
   return channelPrefix
 }
@@ -29,7 +29,7 @@ export const subActionToTemplateName = (subAction: SubscriptionAction): string =
   if (!subAction.id) {
     throw new Error(`This subscription's target does not match any template. Did you forgot the subscription id?`)
   }
-  return subAction.type.substr(4)
+  return subAction.name
 }
 
 export const subscribeFromAction = async (store: Store, subAction: SubscriptionAction) => {
@@ -56,15 +56,13 @@ export const subscribeFromAction = async (store: Store, subAction: SubscriptionA
   })
 }
 
-export const unsubscribeFromAction = (store: Store, subAction: Action) => {
+export const unsubscribeFromAction = (store: Store, subAction: SubscriptionAction) => {
   const tankId = subAction.tankId
   if (!tankId) {
     throw new Error('Action ${action.type} does not have a tank ID.')
   }
 
-  const channelPrefix = subAction.type.substring(6)
-  const id = subAction.id
-  const channelName = !id ? channelPrefix : `${channelPrefix}-${id}`
+  const channelName = subActionToChannelName(subAction)
 
   unsubscribe(store, tankId, channelName)
 }
