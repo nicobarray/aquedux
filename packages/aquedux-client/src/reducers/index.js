@@ -12,13 +12,13 @@ export const initialState = {
 const { hydratedActionTypes, timeout } = configManager.getConfig()
 
 const isPingAwareActionType = actionType => {
-  const internalActionTypes = [actionTypes.AQUEDUX_PING, actionTypes.AQUEDUX_CHANNEL_SNAPSHOT]
+  const internalActionTypes = [actionTypes.AQUEDUX_CLIENT_PING, actionTypes.AQUEDUX_CHANNEL_SNAPSHOT]
 
   return internalActionTypes.indexOf(actionType) !== -1 || hydratedActionTypes.indexOf(actionType) !== -1
 }
 
 const reducer = (prevState = initialState, action) => {
-  if (action.type === actionTypes.AQUEDUX_CLIENT_DEFINE_CHANNEL) {
+  if (action.type === actionTypes.AQUEDUX_CLIENT_CHANNEL_DEFINE) {
     return {
       ...prevState,
       definitions: {
@@ -27,7 +27,7 @@ const reducer = (prevState = initialState, action) => {
       }
     }
   }
-  if (action.type === actionTypes.AQUEDUX_CLIENT_JOIN_CHANNEL) {
+  if (action.type === actionTypes.AQUEDUX_CLIENT_CHANNEL_JOIN) {
     // The action.name here is already composed.
     return {
       ...prevState,
@@ -37,7 +37,7 @@ const reducer = (prevState = initialState, action) => {
       ]
     }
   }
-  if (action.type === actionTypes.AQUEDUX_CLIENT_LEAVE_CHANNEL) {
+  if (action.type === actionTypes.AQUEDUX_CLIENT_CHANNEL_LEAVE) {
     const composedName = !!action.id ? action.name + '-' + action.id : action.name
     return {
       ...prevState,

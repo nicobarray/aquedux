@@ -9,18 +9,29 @@ import actions from '../actions'
 
 import logger from '../utils/logger'
 import * as fromConstants from '../utils/constants'
+import actionTypes from '../constants/actionTypes'
 import * as eventHub from '../utils/eventHub'
 import localStorage from '../utils/localStorage'
-import onAquedux from '../utils/actionWrapper'
 
 const createAqueduxClient = (store, options) => {
-  const { endpoint, timeout } = configManager.setConfig(options)
+  const { endpoint, timeout, hydratedActionTypes } = configManager.setConfig(options)
 
   let socket = null
   let pingIntervalId = null
   let restartTimeoutId = null
   let restartTimeoutDuration = 3000
   let actionStack = []
+
+  // Ideally, these actions should not be sent back to client. Duplicates definition in middleware
+  const isWiredActionType = actionType => {
+    const internalActionTypes = [
+      actionTypes.AQUEDUX_CLIENT_PING,
+      actionTypes.AQUEDUX_CLIENT_CHANNEL_JOIN,
+      actionTypes.AQUEDUX_CLIENT_CHANNEL_LEAVE
+    ]
+
+    return internalActionTypes.indexOf(actionType) !== -1 || hydratedActionTypes.indexOf(actionType) !== -1
+  }
 
   const _handleEventSend = action => {
     logger.trace({
@@ -62,42 +73,66 @@ const createAqueduxClient = (store, options) => {
       what: 'received message',
       who: 'aqueduxClient::_handleMessage'
     })
-    const json = JSON.parse(message.data)
-    // If the message has a type, then it is an action, therefore we dispatch it.
-    if (json.type) {
-      logger.trace({
-        who: 'aqueduxClient::_handleMessage',
-        what: 'valid json received',
-        data: json
+    let json
+
+    try {
+      json = JSON.parse(message.data)
+    } catch (e) {
+      logger.error({
+        data: e,
+        what: 'Invalid JSON message',
+        who: 'aqueduxClient::_handleMessage'
       })
-
-      if (json.token) {
-        localStorage.setItem('token', json.token)
-      }
-
-      if (json.type === 'AQUEDUX_CHANNEL_SNAPSHOT') {
-        // If the channel is defined client-side, reduce the received action
-        // with the current store.
-        if (selectors.hasChannel(json.channelOrTemplateName, store.getState())) {
-          store.dispatch({
-            ...json,
-            newState: channelManager.reduce(json.channelOrTemplateName)(store.getState(), json)
-          })
-        } else {
-          logger.error({
-            who: 'aqueduxClient::_handleMessage',
-            what: 'channel is not defined client-side',
-            channelName: json.channelName,
-            data: json
-          })
-        }
-        return
-      } else if (json.type === 'AQUEDUX_PONG') {
-        console.log('Aquedux PONG')
-      }
-
-      store.dispatch(json)
+      return
     }
+    // If the message has a type, then it is an action, therefore we dispatch it.
+    if (!json.type) {
+      logger.warn({
+        data: json,
+        what: 'Invalid redux action message',
+        who: 'aqueduxClient::_handleMessage'
+      })
+      return
+    }
+    logger.trace({
+      who: 'aqueduxClient::_handleMessage',
+      what: 'valid json received',
+      data: json
+    })
+
+    if (json.token) {
+      localStorage.setItem('token', json.token)
+    }
+
+    if (json.type === 'AQUEDUX_CHANNEL_SNAPSHOT') {
+      // If the channel is defined client-side, reduce the received action
+      // with the current store.
+      if (selectors.hasChannel(json.channelOrTemplateName, store.getState())) {
+        store.dispatch({
+          ...json,
+          newState: channelManager.reduce(json.channelOrTemplateName)(store.getState(), json)
+        })
+      } else {
+        logger.error({
+          who: 'aqueduxClient::_handleMessage',
+          what: 'channel is not defined client-side',
+          channelName: json.channelName,
+          data: json
+        })
+      }
+      return
+    } else if (isWiredActionType(json.type)) {
+      /**
+       * We need to change type to bypass potential user middlewares
+       * Real action.type will be restored in aquedux middleware before hitting reducers
+       */
+      json = {
+        ...json,
+        originalActionType: json.type,
+        type: actionTypes.AQUEDUX_CLIENT_MESSAGE_RECEIVED
+      }
+    }
+    store.dispatch(json)
   }
 
   const _handleOpen = (isRestart = false) => {
@@ -180,7 +215,7 @@ const createAqueduxClient = (store, options) => {
       restartTimeoutDuration = 3000
       if (delay > timeout / 2) {
         store.dispatch(actions.ping.note())
-        store.dispatch(onAquedux(actions.ping.send()))
+        store.dispatch(actions.ping.send())
       }
     } else if (pingState === 'restart') {
       // Do nothing.

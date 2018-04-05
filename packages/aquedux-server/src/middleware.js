@@ -7,6 +7,7 @@ import type { Store } from './constants/types'
 
 import logger from './utils/logger'
 import * as fromConstants from './utils/constants'
+import actionTypes from './constants/actionTypes'
 import * as eventHub from './utils/eventHub'
 
 import { selectors } from './reducers'
@@ -134,14 +135,14 @@ export default (store: Store) => (next: Object => void) => (action: Object) => {
   })
 
   let nextAction = action
-  if (nextAction.type === 'AQUEDUX_PING' && nextAction.meta) {
+  if (nextAction.type === actionTypes.client.AQUEDUX_CLIENT_PING && nextAction.meta) {
     nextAction.meta.private = true
   }
 
   // Handle subscribing actions here.
-  if (nextAction.type.indexOf('SUB:') === 0) {
+  if (nextAction.type === actionTypes.client.AQUEDUX_CLIENT_CHANNEL_JOIN) {
     subscribeFromAction(store, nextAction)
-  } else if (nextAction.type.indexOf('UNSUB:') === 0) {
+  } else if (nextAction.type === actionTypes.client.AQUEDUX_CLIENT_CHANNEL_LEAVE) {
     unsubscribeFromAction(store, nextAction)
     // } else if (action.type === actionTypes.api.AQUEDUX_REMOVE_QUEUE) {
     //   deleteQueueFromAction(store, action)

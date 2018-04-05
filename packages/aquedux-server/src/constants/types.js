@@ -40,7 +40,7 @@ export type Action = {
   tankId: string
 }
 
-export type SubscriptionAction = { type: string, tankId: string, id: ?string }
+export type SubscriptionAction = { type: string, tankId: string, name: string, id: ?string }
 
 export type AqueduxAction =
   | { type: AqueduxActionType, name: string }
