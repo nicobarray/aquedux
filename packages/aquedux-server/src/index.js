@@ -3,7 +3,6 @@ import aqueduxReducers from './reducers'
 import aqueduxMiddleware from './middleware'
 import aqueduxActions from './actions/api'
 import { privateAnswer } from './utils/actionWrapper'
-import { getChannelsOf } from './network/channels'
 import actionTypes from './actionTypes'
 import wrapStoreReducer from './wrapStoreReducer'
 import { subscribeToPrivateChannel } from './network/subscribe'
@@ -17,7 +16,6 @@ export {
   aqueduxActions,
   privateAnswer,
   subscribeToPrivateChannel,
-  getChannelsOf,
   actionTypes,
   wrapStoreReducer,
   getFragmentsInfo,
