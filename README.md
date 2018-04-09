@@ -43,7 +43,7 @@ For the aquedux-server app to work, you have to install a Redis server on your m
 * On Windows: For windows you have two options, either download it from the redis website, or install it on your `Ubuntu On Windows`.
 
 You don't have to configure anything, just running it.
-You now should have a running instance on the localhost:XXXX port.
+You should now have a running Redis instance.
 
 # Getting Started
 
@@ -173,142 +173,10 @@ export default configureStore
 
 And you are good to go! For more help you can check out the example/ directory.
 
-# API
+You can also check out each package for their API documentation:
 
-wip
-* [ ] Remove onAquedux
-* [ ] Uniform aquedux-client.aqueduxReducer & aquedux-server.aqueduxReducers
-
-## aquedux-client
-
-  ### createStore(store, ...enhancers)
-
-  Returns a Redux store and initiate the aquedux client connection. It is a facade over the Redux's `createStore` method. See next method for more information about the option parameter.
-
-  ! This method is a shortcut that do the following job.
-  * Create a Redux's store with an aquedux wrapper other it.
-  * Add the redux-thunk & aquedux in the middleware chain.
-  * Create an aquedux client instance and starts the websocket connection.
-  
-  Therefore you do not have to call `createAqueduxClient`, `aqueduxMiddleware`, `aqueduxReducer` and `wrapStoreReducer`. For a more advance usage, create the Redux store your own way and use thoses methods to add aquedux support.
-
-  ### createAqueduxClient(store, options = {})
-
-  Returns an aquedux client used to send and listen to actions over a websocket connection with an aquedux-server instance.
-
-  * **store**: The app's Redux store. *Required*
-  * options: The client options. Understand the following keys:
-      * hydratedActionTypes: An array of Redux action types to send over the websocket. Default to `[]`.
-      * endpoint: The aquedux-server endpoint. Default to `'127.0.0.1'`.
-      * timeout: The delay in milliseonds before the client instance switches to a disconnected state and tries to reconnect. Default to `5000`.
-  
-  ### aqueduxMiddleware
-
-  Returns the aquedux middleware that intercept actions to send them over the websocket connection. It must be added at the end of the middleware chain.
-
-  ### aqueduxReducer
-
-  The reducer used by aquedux to manager its dynamic state. It must be composed under the `aquedux` key with your app reducers. *Required*
-
-  ```js
-    const reducer = composeReducers({
-      ...appReducers,
-      aquedux: aqueduxReducer
-    })
-    const store = createStore(reducer, ...)
-  ```
-
-  ### wrapStoreReducer
-
-  A store wrapper that handles the rehydratation of the store's state when subscribing to an aquedux channel. *Required*
-
-  ```js
-    const reducer = wrapStoreReducer(
-      composeReducers({
-        ...appReducers,
-        aquedux: aqueduxReducer
-      })
-    )
-
-    const store = createStore(reducer, ...)
-  ```
-
-  ### subscribeToChannel(name, id)
-
-  An action creator to subscribe to an aquedux channnel. When the action is sent other the socket, the server returns a state snapshot of the channel's data. After that, until you unsubscribe from the channel, you will receive and reduce every actions related to it. The channels are described through the aquedux client object method `addChannel`.
-
-  * name: The channel's name. *Required*
-  * id: The channel's id. Used only if you want to handle entities through this channel. Default to `undefined`.
-
-  ### unsubscribeFromChannel(name, id)
-
-  An action creator to unsubscribe from an aquedux channnel. See above.
-
-## aquedux-server
-
-  ### Main API
-
-  ### createAqueduxServer(store: Store, options: any = {})
-
-  Creates the aquedux server used to initiate a sockJS connection with any incomming Aquedux client. *Required*
-
-  The valid options are:
-
-  * queueLimit: The channel's queue size in Redis (the unit is a Redux action). Default to 0 for unlimited size. If a positive size is specified, the Redis queues are split into chunks to manage a fixed Redis size over time.
-
-  * hydratedActionTypes: The action types you wish aquedux to send over to clients. It **must** be the same as in the front-side configuration. Default to [].
-
-  * routePrefix: A route prefix before the ending `/aquedux`. Default to ''.
-
-  Example: If set to 'foo', `$HOST:$PORT/$routePrefix/aquedux`.
-
-  * secret: A new JWT secret is generated at each start. User should override it with a contant one if he needs to persist some JWT token uppon server restart or client reconnection on a different server. Default to an auto-generated token.
-
-  * redisHost: The Redis host used to persist channels informations. Default to `process.env.DB_PORT_6379_TCP_ADDR || '127.0.0.1'`.
-
-  * redisPort: The redis port used to persist channels informations. Default to `process.env.DB_PORT_6379_TCP_PORT || '6379'`.
-
-  ### aqueduxMiddleware
-
-  Returns the aquedux middleware that receive actions and send them over the websocket connection. It must be added at the end of the middleware chain. *Required*
-
-  ### aqueduxReducers
-
-  The reducer used by aquedux to manager its dynamic state. It must be composed under the `aquedux` key with your app reducers. *Required*
-
-  ```js
-    const reducer = composeReducers({
-      ...appReducers,
-      aquedux: aqueduxReducer
-    })
-    const store = createStore(reducer, ...)
-  ```
-
-  ### wrapStoreReducer
-
-  A store wrapper that handles the rehydratation of the store's state from Redis when a new subscribtion is issued from an aquedux client. *Required*
-
-  ```js
-    const reducer = wrapStoreReducer(
-      composeReducers({
-        ...appReducers,
-        aquedux: aqueduxReducer
-      })
-    )
-
-    const store = createStore(reducer, ...)
-  ```
-
-  ### Utilities
-
-  ### privateAnswer
-
-  Used to dispatch an action to a connected client and him only.
-
-  ### subscribeToPrivateChannel
-
-  Used for the api to subscribe itself to a channel. This can be used to persist a state that you don't want
-  your users to see.
+* [aquedux-client](https://github.com/winamax/aquedux/blob/master/packages/aquedux-client/README.md)
+* [aquedux-server](https://github.com/winamax/aquedux/blob/master/packages/aquedux-server/README.md)
 
 # FAQ
 
