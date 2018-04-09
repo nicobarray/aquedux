@@ -52,11 +52,9 @@ Let see the required steps to integrate Aquedux in your current Redux workflow f
 ## The client app
 
 ```js
-/****************************
-*    configureAquedux.js    *
-****************************/
-
-import { createAqueduxClient } from 'aquedux-client'
+import { createAqueduxClient, createStore, subscribeToChannel  } from 'aquedux-client'
+// The app reducer is shared with the server app.
+import rootReducer from './reducers'
 
 const configureAquedux = (store, endpoint) => {
   // Set actionTypes that should be sent over Aquedux and its enpoint
@@ -68,9 +66,11 @@ const configureAquedux = (store, endpoint) => {
   // Create the client instance.
   const client = createAqueduxClient(store, aqueduxOptions)
 
-  // Declare a channel with a way to reduce its snapshot. This is used to group action types and store slices.
-  // The reducer tells Aquedux how to reduce into your state the slice sent over by Aquedux as the channel
-  // initial state.
+  /* 
+  ** Declare a channel with a way to reduce its snapshot. This is used to group action types and store slices.
+  ** The reducer tells Aquedux how to reduce into your state the slice sent over by Aquedux as the channel
+  ** initial state.
+  */
   client.addChannel('todos', (oldState, action) => {
     return {
       ...oldState,
@@ -81,47 +81,33 @@ const configureAquedux = (store, endpoint) => {
   return client
 }
 
-export default configureAquedux
+const store = createStore(rootReducer);
 
-/****************************
-*    configureStore.js      *
-****************************/
+// The default route served by aquedux-server is $YOUR_HOST/aquedux
+const aquedux = configureAquedux(store, 'localhost:3031/aquedux')
 
-import { createStore, subscribeToChannel } from 'aquedux-client'
-import configureAquedux from './configureAquedux'
-import rootReducer from './reducers'
-
-const configureStore = () => {
-  const store = createStore(rootReducer)
-
-  // The default route served by aquedux-server is $YOUR_HOST/aquedux
-  const endpoint = `${protocol}://${host}:${port}/aquedux`
-  const aquedux = configureAquedux(store, endpoint)
-
-  aquedux.start()
-
-  return store;
-}
+aquedux.start()
 
 // In a real world app, this dispatch should be done in a container/component at route level or cDM.
 
-// When subscribing to a channel you are telling Aquedux to receive all related actions in real-time.
-// The first action you receive is the channel's state snapshot.
+/* 
+** When subscribing to a channel you are telling Aquedux to receive all related actions in real-time.
+** The first action you receive is the channel's state snapshot.
+*/
 store.dispatch(subscribeToChannel('todos'))
 ```
 
 ## The server app
 
 ```js
-/****************************
-*    configureAquedux.js    *
-****************************/
-
-import { createAqueduxServer } from 'aquedux-server'
+import { createAqueduxServer, aqueduxMiddleware } from 'aquedux-server'
+import { createStore, applyMiddleware } from 'redux'
+// The app reducer is shared with the client app.
+import rootReducer from './reducers'
 
 const todoTypes = ['ADD_TODO', 'TOGGLE_TODO']
 
-const configureAquedux = (store, host, port) => {
+const configureAquedux = (store) => {
   const aqueduxOptions = {
     hydratedActionTypes: todoTypes,
     secret: 'todoExample'
@@ -129,12 +115,14 @@ const configureAquedux = (store, host, port) => {
 
   let server = createAqueduxServer(store, aqueduxOptions)
 
-  // The server-side channel definition.
-  //
-  // It takes a name to identify it (same as for the front-side definition).
-  // It takes a predicate to filter action types related to it.
-  // It takes a reducer to translate the desired state into a snapshot for first front-side hydratation.
-  // The last argument is a key prefix used to store the channels action.
+  /*
+  ** The server-side channel definition.
+  **
+  ** It takes a name to identify it (same as for the front-side definition).
+  ** It takes a predicate to filter action types related to it.
+  ** It takes a reducer to translate the desired state into a snapshot for first front-side hydratation.
+  ** The last argument is a key prefix used to store the channels action.
+  */
   server.addChannel(
     'todos',
     action => todoTypes.indexOf(action.type) !== -1,
@@ -145,34 +133,22 @@ const configureAquedux = (store, host, port) => {
     'todos'
   )
 
-  return () => server.start(host, port)
+  return server;
 }
 
-export default configureAquedux
+// The middleware who is responsible for the front and back communication.
+const enhancers = applyMiddleware(fromAquedux.aqueduxMiddleware)
 
-/****************************
-*    configureStore.js      *
-****************************/
+const store = createStore(rootReducer, {}, enhancers)
 
-import { createStore, applyMiddleware } from 'redux'
-import * as fromAquedux from 'aquedux-server'
-import rootReducer from './reducers'
+const aquedux = configureAquedux(store)
 
-const configureStore = () => {
-
-  // The middleware who is responsible for the front and back communication.
-  const enhancers = applyMiddleware(fromAquedux.aqueduxMiddleware)
-
-  return createStore(rootReducer, {}, enhancers)
-}
-
-export default configureStore
+aquedux.start('localhost', 3031);
 
 /*
 ```
 
 And you are good to go! For more help you can check out the example/ directory.
-
 You can also check out each package for their API documentation:
 
 * [aquedux-client](https://github.com/winamax/aquedux/blob/master/packages/aquedux-client/README.md)
