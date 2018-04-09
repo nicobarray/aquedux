@@ -49,118 +49,124 @@ Let see the required steps to integrate Aquedux in your current Redux workflow f
 
 ## The client app
 
-### Steps
-
-* Use `Aquedux.createStore` instead of Redux's `createStore`
-* Create the Aquedux client instance with `Aquedux.createClient`
-
-### Gist
-
 ```js
-// Instead of importing from redux, import from aquedux-client here!
-import { createStore, createClient } from 'aquedux-client'
+/****************************
+*    configureAquedux.js    *
+****************************/
 
-// Define the app reducer.
-function counter(state = 0, action) {
-  switch (action.type) {
-  case 'INCREMENT':
-    return state + 1
-  case 'DECREMENT':
-    return state - 1
-  default:
-    return state
+import { createAqueduxClient } from 'aquedux-client'
+
+const configureAquedux = (store, endpoint) => {
+  // Set actionTypes that should be sent over Aquedux and its enpoint
+  const aqueduxOptions = {
+    hydratedActionTypes: ['ADD_TODO', 'TOGGLE_TODO'],
+    endpoint
   }
+
+  // Create the client instance.
+  const client = createAqueduxClient(store, aqueduxOptions)
+
+  // Declare a channel with a way to reduce its snapshot. This is used to group action types and store slices.
+  // The reducer tells Aquedux how to reduce into your state the slice sent over by Aquedux as the channel
+  // initial state.
+  client.addChannel('todos', (oldState, action) => {
+    return {
+      ...oldState,
+      todos: action.snapshot
+    }
+  })
+
+  return client
 }
 
-// Define our action types.
-const actionTypes = ['INCREMENT', 'DECREMENT']
+export default configureAquedux
 
-// Create a Redux store holding the state of your app.
-const store = createStore(counter)
+/****************************
+*    configureStore.js      *
+****************************/
 
-/* Create an Aquedux client instance.
-*  
-*  There is only two required options:
-*  * hydratedActionTypes: A list of action to wire up. They are the only action types sent through Aquedux to other clients.
-*  * endpoint: The server endpoint (by default it ends with /aquedux).
-*/
-const client = createClient(
-  store,
-  { 
-    hydratedActionTypes: actionTypes,
-    endpoint: 'localhost:3001/aquedux'
-  }
-)
+import { createStore, subscribeToChannel } from 'aquedux-client'
+import configureAquedux from './configureAquedux'
+import rootReducer from './reducers'
 
-// Define a channel to listen to other client modifications.
-// The addChannel method takes a name and a state reducer.
-// The state reducer is used when hydrating the client on first connection.
-// After that, it's the incoming actions through that channel that will
-// mutate the state.
-client.addChannel('counter', (prevState, action) => {
-    return action.snapshot;
-});
+const configureStore = () => {
+  const store = createStore(rootReducer)
 
-// Start the websocket connection.
-client.start()
+  // The default route served by aquedux-server is $YOUR_HOST/aquedux
+  const endpoint = `${protocol}://${host}:${port}/aquedux`
+  const aquedux = configureAquedux(store, endpoint)
 
-// The action will not pass through the local Redux reducer. Instead, the action
-// is dispatched through the socket to the Aquedux server. Once the action is
-// safely persisted and reducers on the server-side, it is sent back and reduced locally.
-store.dispatch({ type: 'INCREMENT' })
+  aquedux.start()
+
+  return store;
+}
+
+// In a real world app, this dispatch should be done in a container/component at route level or cDM.
+
+// When subscribing to a channel you are telling Aquedux to receive all related actions in real-time.
+// The first action you receive is the channel's state snapshot.
+store.dispatch(subscribeToChannel('todos'))
 ```
 
 ## The server app
 
-### Steps
-
-### Gist
-
 ```js
-const { createStore } = require('redux')
-const { createServer } = require('aquedux-server')
+/****************************
+*    configureAquedux.js    *
+****************************/
 
-// Redefine the app reducer. Think about a shared module here.
-function counter(state = 0, action) {
-  switch (action.type) {
-  case 'INCREMENT':
-    return state + 1
-  case 'DECREMENT':
-    return state - 1
-  default:
-    return state
+import { createAqueduxServer } from 'aquedux-server'
+
+const todoTypes = ['ADD_TODO', 'TOGGLE_TODO']
+
+const configureAquedux = (store, host, port) => {
+  const aqueduxOptions = {
+    hydratedActionTypes: todoTypes,
+    secret: 'todoExample'
   }
+
+  let server = createAqueduxServer(store, aqueduxOptions)
+
+  // The server-side channel definition.
+  //
+  // It takes a name to identify it (same as for the front-side definition).
+  // It takes a predicate to filter action types related to it.
+  // It takes a reducer to translate the desired state into a snapshot for first front-side hydratation.
+  // The last argument is a key prefix used to store the channels action.
+  server.addChannel(
+    'todos',
+    action => todoTypes.indexOf(action.type) !== -1,
+    getState => {
+      const todos = getState().todos
+      return todos
+    },
+    'todos'
+  )
+
+  return () => server.start(host, port)
 }
 
-// Define our action types.
-const actionTypes = ['INCREMENT', 'DECREMENT']
+export default configureAquedux
 
-// Create the redux store.
-const store = createStore(counter);
+/****************************
+*    configureStore.js      *
+****************************/
 
-/* Create an Aquedux server instance.
+import { createStore, applyMiddleware } from 'redux'
+import * as fromAquedux from 'aquedux-server'
+import rootReducer from './reducers'
 
-    There is only one required option:
-      * hydratedActionTypes: A list of action to wire up. They are the only action types sent through Aquedux to other clients.
-*/
-const server = createServer(store, { hydratedActionTypes: actionTypes })
+const configureStore = () => {
 
-// Add the counter channel definition.
+  // The middleware who is responsible for the front and back communication.
+  const enhancers = applyMiddleware(fromAquedux.aqueduxMiddleware)
+
+  return createStore(rootReducer, {}, enhancers)
+}
+
+export default configureStore
+
 /*
-    The first argument is the channel's name.
-    The second argument is a predicate used to filter actions included in this channel.
-    The third argument is a snapshot reducer. It is called to create the initial client-side store state when a client subscribe to this channel.
-    FIXME: The last argument is the redis's queue prefix used to identify this channel's peristante data.
-*/
-server.addChannel(
-    'counter',
-    action => actionTypes.indexOf(action.type) !== -1,
-    getState => getState(),
-    'counter'
-)
-
-// Start the sockjs server.
-server.start('0.0.0.0', 3001)
 ```
 
 And you are good to go! For more help you can check out the example/ directory.
@@ -173,7 +179,7 @@ wip
 
 ## aquedux-client
 
-  ### createStore(store, ...enhancers) // FIXME
+  ### createStore(store, ...enhancers)
 
   Returns a Redux store and initiate the aquedux client connection. It is a facade over the Redux's `createStore` method. See next method for more information about the option parameter.
 
@@ -225,7 +231,6 @@ wip
     const store = createStore(reducer, ...)
   ```
 
-  ### onAquedux TO DELETE
   ### subscribeToChannel(name, id)
 
   An action creator to subscribe to an aquedux channnel. When the action is sent other the socket, the server returns a state snapshot of the channel's data. After that, until you unsubscribe from the channel, you will receive and reduce every actions related to it. The channels are described through the aquedux client object method `addChannel`.
@@ -241,21 +246,42 @@ wip
 
   ### Main API
 
-  ### createAqueduxServer
+  ### createAqueduxServer(store: Store, options: any = {})
+
+  Creates the aquedux server used to initiate a sockJS connection with any incomming Aquedux client.
+
+  The valid options are:
+
+  * queueLimit: The channel's queue size in Redis (the unit is a Redux action). Default to 0 for unlimited size. If a positive size is specified, the Redis queues are split into chunks to manage a fixed Redis size over time.
+
+  * hydratedActionTypes: The action types you wish aquedux to send over to clients. It **must** be the same as in the front-side configuration. Default to [].
+
+  * routePrefix: A route prefix before the ending `/aquedux`. Default to ''.
+
+  Example: If set to 'foo', `$HOST:$PORT/$routePrefix/aquedux`.
+
+  * secret: A new JWT secret is generated at each start. User should override it with a contant one if he needs to persist some JWT token uppon server restart or client reconnection on a different server. Default to an auto-generated token.
+
+  * redisHost: The Redis host used to persist channels informations. Default to `process.env.DB_PORT_6379_TCP_ADDR || '127.0.0.1'`.
+  
+  * redisPort: The redis port used to persist channels informations. Default to `process.env.DB_PORT_6379_TCP_PORT || '6379'`.
+
+
+
   ### aqueduxMiddleware
   ### aqueduxReducers
   ### wrapStoreReducer
 
   ### Utilities
 
-  ### aqueduxActions
-  ### onAquedux TO DELETE
   ### privateAnswer
+
+  Used to dispatch an action to a connected client and him only.
+
   ### subscribeToPrivateChannel
-  ### getChannelsOf
-  ### actionTypes
-  ### getFragmentsInfo
-  ### kickTank
+
+  Used for the api to subscribe itself to a channel. This can be used to persist a state that you don't want
+  your users to see.
 
 # FAQ
 
