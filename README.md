@@ -193,7 +193,7 @@ reaches a more stable phase, we'll gladely accept pull requests.
 
 # Authors
 
-* Nicolas Barray ([@nek0las](https://github.com/nbarray)) -
+* Nicolas Barray ([@yahwastaken](https://github.com/yahwastaken)) -
 [Winamax](https://www.winamax.fr/)
 * CHaBou ([@chabou](https://github.com/chabou)) -
 [Winamax](https://www.wiamax.fr/)
