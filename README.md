@@ -147,8 +147,6 @@ const store = createStore(rootReducer, {}, enhancers)
 const aquedux = configureAquedux(store)
 
 aquedux.start('localhost', 3031);
-
-/*
 ```
 
 And you are good to go! For more help you can check out the example/ directory.
