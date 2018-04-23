@@ -84,7 +84,7 @@ const createAqueduxServer = (store: Store, options: any = {}) => {
     const tank = { conn: tankManager.getSocket(subAction.tankId) }
     const channel = channelManager.getChannelHandlersFromName(channelName)
     const snapshotAction = actions.channel.snapshot(
-      subAction.type.substr(4),
+      subAction.name,
       subAction.id,
       channel.reducer(store.getState, subAction.id)
     )

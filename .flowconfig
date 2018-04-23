@@ -1,5 +1,7 @@
 [ignore]
-./plugins/*/build
+.*/build
+<PROJECT_ROOT>/examples/.*
+
 [include]
 
 [libs]
