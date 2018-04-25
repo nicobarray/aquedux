@@ -6,7 +6,8 @@
   "main": "build/index.js",
   "scripts": {
     "build": "babel src --out-dir build",
-    "watch": "yarn build --watch"
+    "watch": "yarn build --watch",
+    "prepublishOnly": "yarn build"
   },
   "dependencies": {
     "bunyan": "^1.8.12",
