@@ -9,6 +9,7 @@
     "clean": "rm -rf ./node_modules && yarn clean:build",
     "lint": "eslint . --cache --ext js",
     "publish": "lerna publish --conventional-commits",
+    "republish": "lerna publish --conventional-commits --force-publish=*",
     "prepush": "yarn  test",
     "test": "yarn typecheck && yarn lint && lerna run test",
     "typecheck": "flow check --include-warnings",
