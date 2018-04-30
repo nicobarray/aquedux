@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/winamax/aquedux/compare/v2.0.3...v2.1.0) (2018-04-30)
+
+
+### Features
+
+* **aquedux-server:** Add logLevel option ([3387fe8](https://github.com/winamax/aquedux/commit/3387fe8))
+
+
+
+
 <a name="2.0.3"></a>
 ## [2.0.3](https://github.com/winamax/aquedux/compare/v2.0.2...v2.0.3) (2018-04-27)
 
