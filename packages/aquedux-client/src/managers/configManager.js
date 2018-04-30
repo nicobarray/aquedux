@@ -6,7 +6,7 @@ let config = {
   hydratedActionTypes: [],
   timeout: 5000,
   endpoint: '127.0.0.1',
-  logLevel: 'info'
+  logLevel: process.env.AQUEDUX_LOG_LEVEL || 'info'
 }
 
 export type AqueduxConfig = typeof config
