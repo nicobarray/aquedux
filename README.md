@@ -11,10 +11,10 @@ Aquedux is a Redux enhancer that enables seamless real-time synchronization acro
 
 # Philosophy
 
-With Aquedux, you can write your server code with the same logic than your web/native app. There is no need to
+With Aquedux, you can write your server code with the same logic than your web/native app. No need to
 use another library that forces you to add GraphQL or RESTfull endpoints. Everything is a Redux app.
 
-Aquedux shares your App state across every connected instance. It can be a Node.js microservice, a React app, or anything you would imagine.
+Aquedux shares your App state across every connected instance. It can be a Node.js microservice, a React app, or anything that can depend on Redux.
 
 It makes the writing of client and server app easy. There is no need to add another technical layer. If you know how to use Redux, you know how to use Aquedux.
 
@@ -55,9 +55,15 @@ Let see the required steps to integrate Aquedux in your current Redux workflow f
 ## The client app
 
 ```js
-import { createAqueduxClient, createStore, subscribeToChannel  } from 'aquedux-client'
+import { createAqueduxClient, createStore, aqueduxReducer, combineReducer, subscribeToChannel } from 'aquedux-client'
+
 // The app reducer is shared with the server app.
 import rootReducer from './reducers'
+
+const appReducer = combineReducer({
+  ...rootReducer,
+  aquedux: aqueduxReducer
+})
 
 const configureAquedux = (store, endpoint) => {
   // Set actionTypes that should be sent over Aquedux and its enpoint
@@ -84,10 +90,10 @@ const configureAquedux = (store, endpoint) => {
   return client
 }
 
-const store = createStore(rootReducer);
+const store = createStore(appReducer);
 
 // The default route served by aquedux-server is $YOUR_HOST/aquedux
-const aquedux = configureAquedux(store, 'localhost:3031/aquedux')
+const aquedux = configureAquedux(store, 'http://localhost:3031/aquedux')
 
 aquedux.start()
 
@@ -103,10 +109,15 @@ store.dispatch(subscribeToChannel('todos'))
 ## The server app
 
 ```js
-import { createAqueduxServer, aqueduxMiddleware } from 'aquedux-server'
+import { createAqueduxServer, aqueduxMiddleware, aqueduxReducer } from 'aquedux-server'
 import { createStore, applyMiddleware } from 'redux'
 // The app reducer is shared with the client app.
 import rootReducer from './reducers'
+
+const appReducer = combineReducer({
+  ...rootReducer,
+  aquedux: aqueduxReducer
+})
 
 const todoTypes = ['ADD_TODO', 'TOGGLE_TODO']
 
@@ -142,7 +153,7 @@ const configureAquedux = (store) => {
 // The middleware who is responsible for the front and back communication.
 const enhancers = applyMiddleware(fromAquedux.aqueduxMiddleware)
 
-const store = createStore(rootReducer, {}, enhancers)
+const store = createStore(appReducer, {}, enhancers)
 
 const aquedux = configureAquedux(store)
 
