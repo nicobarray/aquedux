@@ -1,6 +1,8 @@
 
 # aquedux-client
 
+  Redux over the wire - client side
+
   ## createStore(reducer, ...enhancers)
 
   Returns a Redux store and initiate the aquedux client connection. It is a facade over the Redux's `createStore` method. See next method for more information about the option parameter.
