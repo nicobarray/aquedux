@@ -13,6 +13,7 @@
     "local-storage": "^1.4.2",
     "lodash": "^4.17.4",
     "redux": "^3.6.0",
+    "redux-thunk": "^2.2.0",
     "sockjs-client": "^1.1.2"
   }
 }
