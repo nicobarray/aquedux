@@ -1,5 +1,7 @@
 # aquedux-server
 
+  Redux over the wire - server side
+
   ## createAqueduxServer(store: Store, options: any = {})
 
   Creates the aquedux server used to initiate a sockJS connection with any incomming Aquedux client. *Required*

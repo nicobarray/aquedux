@@ -7,6 +7,7 @@ import logger from '../utils/logger'
 let config = {
   queueLimit: 0,
   hydratedActionTypes: [],
+  logLevel: process.env.AQUEDUX_LOG_LEVEL || 'info',
   routePrefix: '',
   /**
    * A new JWT secret is generated at each start.
@@ -46,18 +47,25 @@ const setConfig = (newConfig: any): AqueduxConfig => {
       })
       return result
     }
+
     const merged: AqueduxConfig = {
       ...result,
       [key]: newConfig[key]
     }
+
     return merged
   }, config)
+
+  logger.level(config.logLevel)
+
   logger.trace({
     who: 'configManager',
     what: 'config has been set',
     config
   })
+
   configValidate(config)
+
   return config
 }
 

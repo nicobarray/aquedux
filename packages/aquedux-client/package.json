@@ -1,12 +1,13 @@
 {
   "name": "aquedux-client",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "repository": "https://github.com/winamax/aquedux",
   "license": "MIT",
   "main": "build/index.js",
   "scripts": {
     "build": "babel src --out-dir build",
-    "watch": "yarn build --watch"
+    "watch": "yarn build --watch",
+    "prepublishOnly": "yarn build"
   },
   "dependencies": {
     "bunyan": "^1.8.12",
