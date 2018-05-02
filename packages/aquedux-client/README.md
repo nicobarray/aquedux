@@ -1,9 +1,7 @@
 
 # aquedux-client
 
-  Redux over the wire - client side
-
-  ## createStore(store, ...enhancers)
+  ## createStore(reducer, ...enhancers)
 
   Returns a Redux store and initiate the aquedux client connection. It is a facade over the Redux's `createStore` method. See next method for more information about the option parameter.
 
@@ -12,7 +10,22 @@
   * Add the redux-thunk & aquedux in the middleware chain.
   * Create an aquedux client instance and starts the websocket connection.
   
-  Therefore you do not have to call `createAqueduxClient`, `aqueduxMiddleware`, `aqueduxReducer` and `wrapStoreReducer`. For a more advance usage, create the Redux store your own way and use thoses methods to add aquedux support.
+  Therefore you do not have to call `aqueduxMiddleware`, `aqueduxReducer` and `wrapStoreReducer`. For a more advance usage, create the Redux store your own way and use thoses methods to add aquedux support.
+
+  ## combineReducers(reducersObject)
+  It is a facade over the Redux's `combineReducers` method. It acts like it but it automatically adds required internal aquedux reducer.
+
+  If you prefer using regular redux combineReducers function, you can add the aquedux reducer manually:
+  ```js
+    import { aqueduxReducer } from 'aquedux-client'
+    const reducer = composeReducers({
+      ...appReducers,
+      aquedux: aqueduxReducer
+    })
+    const store = createStore(reducer, ...)
+  ```
+
+  :warning: You have to add aquedux reducer. If you have a only one reducer, please use combineReducers with it.
 
   ## createAqueduxClient(store, options = {})
 
@@ -27,18 +40,6 @@
   ## aqueduxMiddleware
 
   Returns the aquedux middleware that intercept actions to send them over the websocket connection. It must be added at the end of the middleware chain.
-
-  ## aqueduxReducer
-
-  The reducer used by aquedux to manager its dynamic state. It must be composed under the `aquedux` key with your app reducers. *Required*
-
-  ```js
-    const reducer = composeReducers({
-      ...appReducers,
-      aquedux: aqueduxReducer
-    })
-    const store = createStore(reducer, ...)
-  ```
 
   ## wrapStoreReducer
 
