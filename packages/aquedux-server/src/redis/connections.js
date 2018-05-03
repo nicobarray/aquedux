@@ -11,6 +11,7 @@ bluebird.promisifyAll(redis.RedisClient.prototype)
 bluebird.promisifyAll(redis.Multi.prototype)
 
 let connections = {}
+let initial = null
 
 const retry_strategy = options => {
   if (options.attempt > 3) {
@@ -20,13 +21,6 @@ const retry_strategy = options => {
   }
   return Math.min(options.attempt * options.attempt * 100, 3000)
 }
-
-//TODO Maybe move it to a function called after initial config
-const { redisHost, redisPort } = configManager.getConfig()
-
-const initial = redis.createClient(redisPort, redisHost, {
-  retry_strategy
-})
 
 const hookOnEvents = connection => {
   connection.on('error', err => {
@@ -52,7 +46,21 @@ const hookOnEvents = connection => {
   })
 }
 
-hookOnEvents(initial)
+/**
+ *  Create the initial Redis connection.
+ *
+ *  Must be called after configManager.setConfig, else the redisHost and redisPort
+ *  would default and thus never used as intended.
+ */
+export const initRedisConnection = () => {
+  const { redisHost, redisPort } = configManager.getConfig()
+
+  initial = redis.createClient(redisPort, redisHost, {
+    retry_strategy
+  })
+
+  hookOnEvents(initial)
+}
 
 export function UndefinedConnectionException(message) {
   this.message = message
