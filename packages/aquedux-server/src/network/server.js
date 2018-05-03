@@ -10,6 +10,7 @@ import logger from '../utils/logger'
 import actions from '../actions'
 import actionTypes from '../constants/actionTypes'
 import { selectors } from '../reducers'
+import { initRedisConnection } from '../redis/connections'
 
 // Managers.
 import tankManager from '../managers/tankManager'
@@ -32,6 +33,8 @@ export const getOwnId = () => {
 
 const createAqueduxServer = (store: Store, options: any = {}) => {
   const { onConnection, onClose, routePrefix } = configManager.setConfig(options)
+
+  initRedisConnection()
 
   // Bind ownId to store.
   ownId = () => selectors.queue.getId(store.getState())
