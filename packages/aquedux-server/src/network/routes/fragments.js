@@ -4,14 +4,17 @@ import { selectors } from '../../reducers'
 export const getFragmentsInfo = store => {
   const { queueLimit } = configManager.getConfig()
   const queueNames = Object.keys(selectors.queue.listQueues(store.getState()))
-  const cursor = selectors.queue.getCursor(store.getState(), channelName)
-  const index = queueLimit === 0 ? 0 : Math.floor(cursor / queueLimit)
 
   return JSON.stringify({
-    fragments: queueNames.map(name => ({
-      name,
-      index
-    }))
+    fragments: queueNames.map(name => {
+      const cursor = selectors.queue.getCursor(store.getState(), name)
+      const index = queueLimit === 0 ? 0 : Math.floor(cursor / queueLimit)
+
+      return {
+        name,
+        index
+      }
+    })
   })
 }
 
