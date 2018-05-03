@@ -22,20 +22,6 @@ const retry_strategy = options => {
   return Math.min(options.attempt * options.attempt * 100, 3000)
 }
 
-/**
- *  Create the initial Redis connection.
- *
- *  Must be called after configManager.setConfig, else the redisHost and redisPort
- *  would default and thus never used as intended.
- */
-export const initRedisConnection = () => {
-  const { redisHost, redisPort } = configManager.getConfig()
-
-  this.initial = redis.createClient(redisPort, redisHost, {
-    retry_strategy
-  })
-}
-
 const hookOnEvents = connection => {
   connection.on('error', err => {
     logger.error({ who: 'redis-driver', err })
@@ -60,7 +46,21 @@ const hookOnEvents = connection => {
   })
 }
 
-hookOnEvents(initial)
+/**
+ *  Create the initial Redis connection.
+ *
+ *  Must be called after configManager.setConfig, else the redisHost and redisPort
+ *  would default and thus never used as intended.
+ */
+export const initRedisConnection = () => {
+  const { redisHost, redisPort } = configManager.getConfig()
+
+  initial = redis.createClient(redisPort, redisHost, {
+    retry_strategy
+  })
+
+  hookOnEvents(initial)
+}
 
 export function UndefinedConnectionException(message) {
   this.message = message
