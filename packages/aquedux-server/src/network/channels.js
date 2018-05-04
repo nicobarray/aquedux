@@ -1,17 +1,11 @@
 // @flow
 
-// Types.
 import type { State, Action, Dispatch, Store } from '../constants/types'
-
-// Helpers.
-import logger from '../utils/logger'
-import actions from '../actions'
-import { raise as eventHubRaise } from '../utils/eventHub'
-import { EVENT_SEND_ACTION_TO_TANK } from '../utils/constants'
-import { selectors } from '../reducers'
-
-// Managers.
 import channelManager from '../managers/channelManager'
+import logger from '../utils/logger'
+import * as eventHub from '../utils/eventHub'
+import actions from '../actions'
+import { selectors } from '../reducers'
 
 // A function that takes the redux state and returns the data necessary
 // to initialize a newly subscribbed client to this channel.
@@ -64,7 +58,7 @@ export const forwardActionToChannelSubscribers = (store: Store, action: Action) 
   })
 
   matchingTanks.forEach(tank => {
-    eventHubRaise(EVENT_SEND_ACTION_TO_TANK, {
+    eventHub.raise(eventHub.EVENT_SEND_ACTION_TO_TANK, {
       tankId: tank.id,
       action
     })
