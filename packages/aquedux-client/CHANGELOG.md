@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.1.1"></a>
+## [2.1.1](https://github.com/winamax/aquedux/compare/v2.1.0...v2.1.1) (2018-05-04)
+
+
+### Bug Fixes
+
+* add redux-thunk to client dependencies ([#22](https://github.com/winamax/aquedux/issues/22)) ([63125e8](https://github.com/winamax/aquedux/commit/63125e8))
+
+
+
+
 <a name="2.1.0"></a>
 # [2.1.0](https://github.com/winamax/aquedux/compare/v2.0.3...v2.1.0) (2018-04-30)
 
