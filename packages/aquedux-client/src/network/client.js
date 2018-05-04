@@ -1,17 +1,15 @@
 import reverse from 'lodash/reverse'
 
-import createSocketClient from './socketClient'
+import actionTypes from '../constants/actionTypes'
 import channelManager from '../managers/channelManager'
 import configManager from '../managers/configManager'
 import { addChannel, subscribeToChannel } from '../network/channels'
-import { selectors } from '../reducers'
-import actions from '../actions'
-
 import logger from '../utils/logger'
-import * as fromConstants from '../utils/constants'
-import actionTypes from '../constants/actionTypes'
 import * as eventHub from '../utils/eventHub'
 import localStorage from '../utils/localStorage'
+import { selectors } from '../reducers'
+import actions from '../actions'
+import createSocketClient from './socketClient'
 
 const createAqueduxClient = (store, options) => {
   const { endpoint, timeout, hydratedActionTypes } = configManager.setConfig(options)
@@ -64,7 +62,7 @@ const createAqueduxClient = (store, options) => {
   }
 
   const _handleClose = _socket => {
-    eventHub.unregister(fromConstants.EVENT_SEND, _handleEventSend)
+    eventHub.unregister(eventHub.EVENT_SEND, _handleEventSend)
   }
 
   const _handleMessage = (socket, message) => {
@@ -191,10 +189,10 @@ const createAqueduxClient = (store, options) => {
   const start = (isRestart = false) => {
     if (isRestart) {
       socket.close()
-      eventHub.unregister(fromConstants.EVENT_SEND, _handleEventSend)
+      eventHub.unregister(eventHub.EVENT_SEND, _handleEventSend)
     }
 
-    eventHub.register(fromConstants.EVENT_SEND, _handleEventSend)
+    eventHub.register(eventHub.EVENT_SEND, _handleEventSend)
     socket = createSocketClient(endpoint, () => _handleOpen(isRestart), _handleClose, _handleMessage)
   }
 

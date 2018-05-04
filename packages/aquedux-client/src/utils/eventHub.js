@@ -1,3 +1,5 @@
+export const EVENT_SEND = 'AQUA:SEND'
+
 let eventMap = {}
 
 export const register = (channel, callback) => {

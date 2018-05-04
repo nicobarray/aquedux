@@ -1,30 +1,20 @@
 // @flow
 
-// Types.
 import type { Store } from '../constants/types'
-
-// Helpers.
-import * as fromConstants from '../utils/constants'
-import * as eventHub from '../utils/eventHub'
-import logger from '../utils/logger'
-import actions from '../actions'
 import actionTypes from '../constants/actionTypes'
-import { selectors } from '../reducers'
-import { initRedisConnection } from '../redis/connections'
-
-// Managers.
 import tankManager from '../managers/tankManager'
 import channelManager from '../managers/channelManager'
 import configManager from '../managers/configManager'
-
-// Aquedux API.
-import { addChannel, addChannelTemplate } from './channels'
+import { initRedisConnection } from '../redis/connections'
+import * as eventHub from '../utils/eventHub'
+import logger from '../utils/logger'
+import actions from '../actions'
 import mapActionToChannelId from '../mapActionToChannelId'
-
-// Logic.
-import createSocketServer from './socketServer'
+import { selectors } from '../reducers'
+import { addChannel, addChannelTemplate } from './channels'
 import receive from './receive'
 import send from './send'
+import createSocketServer from './socketServer'
 
 let ownId = () => undefined
 export const getOwnId = () => {
@@ -46,7 +36,7 @@ const createAqueduxServer = (store: Store, options: any = {}) => {
   const socketServer = createSocketServer(store, onConnection, onClose, handleMessage, routePrefix)
 
   // This event is for sending data to a single tank.
-  eventHub.register(fromConstants.EVENT_SEND_ACTION_TO_TANK, args => {
+  eventHub.register(eventHub.EVENT_SEND_ACTION_TO_TANK, args => {
     const { tankId, action } = args
 
     if (actionTypes.tank.hasOwnProperty(action.type)) {
@@ -82,7 +72,7 @@ const createAqueduxServer = (store: Store, options: any = {}) => {
   })
 
   // This event is for sending channel data to a single tank.
-  eventHub.register(fromConstants.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, ({ channelName, subAction }) => {
+  eventHub.register(eventHub.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, ({ channelName, subAction }) => {
     logger.debug({ who: 'server', what: 'send channel snapshot to tank', channelName, subAction })
     const tank = { conn: tankManager.getSocket(subAction.tankId) }
     const channel = channelManager.getChannelHandlersFromName(channelName)
