@@ -12,6 +12,8 @@
 
   * hydratedActionTypes: The action types you wish aquedux to send over to clients. It **must** be the same as in the front-side configuration. Default to [].
 
+  * logLevel: The buyan log level to display. Can take either 'fatal', 'error', 'warn', 'info', 'debug' or 'trace'. Default to 'info'.
+
   * routePrefix: A route prefix before the ending `/aquedux`. Default to ''.
 
   Example: If set to 'foo', `$HOST:$PORT/$routePrefix/aquedux`.
