@@ -23,6 +23,8 @@
       * hydratedActionTypes: An array of Redux action types to send over the websocket. Default to `[]`.
       * endpoint: The aquedux-server endpoint. Default to `'127.0.0.1'`.
       * timeout: The delay in milliseonds before the client instance switches to a disconnected state and tries to reconnect. Default to `5000`.
+      * logLevel: The buyan log level to display. Can take either 'fatal', 'error', 'warn', 'info', 'debug' or 'trace'. Default to 'info'.
+
   
   ## aqueduxMiddleware
 
