@@ -3,22 +3,17 @@
 import omit from 'lodash/omit'
 import omitBy from 'lodash/omitBy'
 
-import type { Store } from './constants/types'
-
-import logger from './utils/logger'
-import * as fromConstants from './utils/constants'
 import actionTypes from './constants/actionTypes'
-import * as eventHub from './utils/eventHub'
-
-import { selectors } from './reducers'
-import { subscribeFromAction, unsubscribeFromAction } from './network/subscribe'
-import { forwardActionToChannelSubscribers } from './network/channels'
-
+import type { Store } from './constants/types'
 import channelManager from './managers/channelManager'
 import configManager from './managers/configManager'
-
+import { forwardActionToChannelSubscribers } from './network/channels'
+import { subscribeFromAction, unsubscribeFromAction } from './network/subscribe'
 import asyncCreate from './redis/asyncCreate'
 import asyncPush from './redis/asyncPush'
+import * as eventHub from './utils/eventHub'
+import logger from './utils/logger'
+import { selectors } from './reducers'
 
 const isStatefull = actionType => {
   const { hydratedActionTypes } = configManager.getConfig()
@@ -32,7 +27,7 @@ const respondToSender = action => {
   }
 
   // Return the reduced action to its sender.
-  eventHub.raise(fromConstants.EVENT_SEND_ACTION_TO_TANK, args)
+  eventHub.raise(eventHub.EVENT_SEND_ACTION_TO_TANK, args)
 }
 
 const statefullActionToRedis = async (store: Store, action: Object) => {

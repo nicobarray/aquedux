@@ -1,21 +1,13 @@
 // @flow
 
-// Types.
 import type { Store, Action, SubscriptionAction } from '../constants/types'
-
-// Helpers.
-import logger from '../utils/logger'
-import * as fromConstants from '../utils/constants'
-import * as eventHub from '../utils/eventHub'
-import actions from '../actions'
-import { selectors } from '../reducers'
-import until from '../redis/until'
-
-// Managers.
 import channelManager from '../managers/channelManager'
-
-// Logic.
 import asyncCreate from '../redis/asyncCreate'
+import until from '../redis/until'
+import * as eventHub from '../utils/eventHub'
+import logger from '../utils/logger'
+import { selectors } from '../reducers'
+import actions from '../actions'
 
 export const subActionToChannelName = (subAction: SubscriptionAction): string => {
   const channelPrefix = subAction.name
@@ -50,7 +42,7 @@ export const subscribeFromAction = async (store: Store, subAction: SubscriptionA
   logger.debug({ who: 'aquedux-server', what: 'send SNAPSHOT', channelName })
 
   // TODO: This should be an action dispatch and the result handled in a middleware.
-  eventHub.raise(fromConstants.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, {
+  eventHub.raise(eventHub.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, {
     channelName,
     subAction
   })
