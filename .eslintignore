@@ -2,4 +2,5 @@
 #flow-typed/**
 packages/*/build/**
 examples/todo/**
+examples/todomvc/**
 !.eslintrc.js
