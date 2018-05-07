@@ -6,7 +6,7 @@ import receive from '../../src/network/receive'
 import logger from '../../src/utils/logger'
 
 // Data for testing.
-
+configManager.setConfig({ secret: 'test' })
 const { secret } = configManager.getConfig()
 
 const mockTank = {
