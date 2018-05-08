@@ -12,21 +12,14 @@ import actions from '../actions'
 import createSocketClient from './socketClient'
 
 const createAqueduxClient = (store, options) => {
-  const { endpoint, timeout, hydratedActionTypes } = configManager.setConfig(options)
+  const { endpoint, hydratedActionTypes } = configManager.setConfig(options)
 
   let socket = null
-  let pingIntervalId = null
-  let restartTimeoutId = null
-  let restartTimeoutDuration = 3000
   let actionStack = []
 
   // Ideally, these actions should not be sent back to client. Duplicates definition in middleware
   const isWiredActionType = actionType => {
-    const internalActionTypes = [
-      actionTypes.AQUEDUX_CLIENT_PING,
-      actionTypes.AQUEDUX_CLIENT_CHANNEL_JOIN,
-      actionTypes.AQUEDUX_CLIENT_CHANNEL_LEAVE
-    ]
+    const internalActionTypes = [actionTypes.AQUEDUX_CLIENT_CHANNEL_JOIN, actionTypes.AQUEDUX_CLIENT_CHANNEL_LEAVE]
 
     return internalActionTypes.indexOf(actionType) !== -1 || hydratedActionTypes.indexOf(actionType) !== -1
   }
@@ -166,26 +159,6 @@ const createAqueduxClient = (store, options) => {
     }
   }
 
-  const setupPing = () => {
-    // Setup ping
-    clearInterval(pingIntervalId)
-    pingIntervalId = setInterval(_handlePing, 1000)
-  }
-
-  const setupRestart = () => {
-    clearTimeout(restartTimeoutId)
-    restartTimeoutId = setTimeout(() => {
-      if (selectors.ping.getPingState(store.getState()) === 'restart') {
-        store.dispatch(actions.ping.ko())
-      }
-      if (restartTimeoutDuration <= 9000) {
-        restartTimeoutDuration += 3000
-      } else {
-        restartTimeoutDuration = 9000
-      }
-    }, restartTimeoutDuration)
-  }
-
   const start = (isRestart = false) => {
     if (isRestart) {
       socket.close()
@@ -196,42 +169,13 @@ const createAqueduxClient = (store, options) => {
     socket = createSocketClient(endpoint, () => _handleOpen(isRestart), _handleClose, _handleMessage)
   }
 
-  const _handlePing = () => {
-    const pingState = selectors.ping.getPingState(store.getState())
-    const delay = Date.now() - selectors.ping.getLastTimestamp(store.getState())
-
-    // This case will happened once per restart attempt.
-    if (pingState === 'ko') {
-      // Change ping state to "restart"
-      store.dispatch(actions.ping.restart())
-      console.log('Restart timeout duration ', restartTimeoutDuration)
-      setupRestart()
-
-      start(true)
-      setupPing()
-    } else if (pingState === 'ok') {
-      restartTimeoutDuration = 3000
-      if (delay > timeout / 2) {
-        store.dispatch(actions.ping.note())
-        store.dispatch(actions.ping.send())
-      }
-    } else if (pingState === 'restart') {
-      // Do nothing.
-    }
-  }
-
   return {
-    start() {
-      start()
-      setupPing()
-    },
+    start,
     close() {
-      if (socket) {
-        socket.close()
-      }
+      socket && socket.close()
     },
     status() {
-      return socket.readyState
+      return socket && socket.readyState
     },
     addChannel: (name, reducer) => addChannel(store, name, reducer)
   }

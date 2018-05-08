@@ -130,9 +130,6 @@ export default (store: Store) => (next: Object => void) => (action: Object) => {
   })
 
   let nextAction = action
-  if (nextAction.type === actionTypes.client.AQUEDUX_CLIENT_PING && nextAction.meta) {
-    nextAction.meta.private = true
-  }
 
   // Handle subscribing actions here.
   if (nextAction.type === actionTypes.client.AQUEDUX_CLIENT_CHANNEL_JOIN) {

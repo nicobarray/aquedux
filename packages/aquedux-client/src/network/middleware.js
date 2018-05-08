@@ -9,11 +9,7 @@ const isInternalActionType = actionType => internalActionTypes.indexOf(actionTyp
 const isWiredActionType = actionType => {
   const { hydratedActionTypes } = configManager.getConfig()
 
-  return (
-    hydratedActionTypes.indexOf(actionType) !== -1 ||
-    isInternalActionType(actionType) ||
-    actionType === actionTypes.AQUEDUX_CLIENT_PING
-  )
+  return hydratedActionTypes.indexOf(actionType) !== -1 || isInternalActionType(actionType)
 }
 
 const clientMiddleware = _store => next => action => {
