@@ -1,7 +1,10 @@
+import configManager from '../../src/managers/configManager'
+
 import send from '../../src/network/send'
 import logger from '../../src/utils/logger'
 
 // Data for testing.
+configManager.setConfig({ secret: 'test' })
 
 const mockTank = onWrite => ({
   conn: {

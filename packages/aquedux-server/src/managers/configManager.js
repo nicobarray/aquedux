@@ -10,12 +10,12 @@ let config = {
   logLevel: process.env.AQUEDUX_LOG_LEVEL || 'info',
   routePrefix: '',
   /**
-   * A new JWT secret is generated at each start.
+   * A new JWT secret is generated at each start, if missing.
    * User should override it with a contant one
    * if he needs to persist some JWT token uppon server restart
    * or client reconnection on a different server
    */
-  secret: keygen.password(),
+  secret: null,
 
   redisHost: process.env.DB_PORT_6379_TCP_ADDR || '127.0.0.1', // Default redis env var
   redisPort: process.env.DB_PORT_6379_TCP_PORT || '6379', // Default redis env var
@@ -35,6 +35,17 @@ const configValidate = (config_: AqueduxConfig) => {
       what: 'Invalid config: doFragmentSnapshot handler should be defined if queueLimit > 0'
     })
   }
+
+  if (!config.secret) {
+    logger.warn({
+      who: 'configManager',
+      what:
+        "No JWT secret specified. A temporary one has been generated but clients won't be able to connect after a server restart or to another instance"
+    })
+    config.secret = keygen.password()
+  }
+
+  return config
 }
 
 const setConfig = (newConfig: any): AqueduxConfig => {
@@ -64,7 +75,7 @@ const setConfig = (newConfig: any): AqueduxConfig => {
     config
   })
 
-  configValidate(config)
+  config = configValidate(config)
 
   return config
 }
