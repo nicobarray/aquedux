@@ -18,7 +18,7 @@ Aquedux shares your App state across every connected instance. It can be a Node.
 
 It makes the writing of client and server app easy. There is no need to add another technical layer. If you know how to use Redux, you know how to use Aquedux.
 
-More in this section coming soon.
+For more on this, check out this post: [Redux over the wire](https://medium.com/@nbarray/redux-over-the-wire-2a849d618ff5)
 
 # Installation
 
