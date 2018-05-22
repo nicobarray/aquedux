@@ -5,6 +5,5 @@ export default {
   AQUEDUX_CHANNEL_SNAPSHOT: 'AQUEDUX_CHANNEL_SNAPSHOT',
   AQUEDUX_CLIENT_START: '@aquedux/start',
   AQUEDUX_CLIENT_STOP: '@aquedux/stop',
-  AQUEDUX_CLIENT_RESTART: '@aquedux/restart',
-  AQUEDUX_CLIENT_STATUS: '@aquedux/status'
+  AQUEDUX_CLIENT_RESTART: '@aquedux/restart'
 }

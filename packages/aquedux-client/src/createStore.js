@@ -23,7 +23,7 @@ function wrapStoreReducer(reducer) {
 
       if (!channelManager.hasDef(channelOrTemplateName)) {
         throw Error(
-          `The channel ${channelName} (${channelOrTemplateName}) is not defined. ` +
+          `The channel ${channelOrTemplateName} is not defined. ` +
             `Did you forget to add the "channels" option key to createAquedux() ?`
         )
       }
@@ -42,7 +42,7 @@ function wrapStoreReducer(reducer) {
  *
  * @param {Store} store The redux store.
  */
-function resubscriber(store) {
+const resubscriber = (store: any) => () => {
   const subs = channelManager.getSub()
 
   subs.forEach(sub => {
@@ -67,7 +67,7 @@ function resubscriber(store) {
  *
  * See https://redux.js.org/api-reference/createstore to know more about the function arguments.
  */
-export default function(reducer, preloadedState, enhancer) {
+export default function(reducer: Function, preloadedState: any, enhancer: Function) {
   const wrappedReducer = wrapStoreReducer(reducer)
   const store = createStore(wrappedReducer, preloadedState, enhancer)
 

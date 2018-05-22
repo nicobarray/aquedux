@@ -48,15 +48,11 @@ export default function createClient(options: AqueduxConfig) {
       try {
         return JSON.parse(message.data)
       } catch (e) {
-        console.error(
-          `The client received an invalid message: ${JSON.stringify({ error: e, message: message.data }, null, 2)}`
-        )
         return null
       }
     })()
 
-    // If the message has a type, then it is an action
-    if (!json.type) {
+    if (!json || !json.type) {
       console.error(`The client received an invalid message: ${JSON.stringify({ message: json }, null, 2)}`)
       return
     }
@@ -88,7 +84,7 @@ export default function createClient(options: AqueduxConfig) {
   function onOpen(isRestart = false) {
     // Try to resubscribe to previously subscribed channels before loosing connection.
     if (isRestart) {
-      raise(events.EVENT_CHANNEL_RESUBSCRIBE, actions)
+      raise(events.EVENT_CHANNEL_RESUBSCRIBE)
     } else {
       // Send stacked actions that occured when the socket was not ready yet.
       actionStack.forEach(onSend)

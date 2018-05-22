@@ -9,7 +9,7 @@ import clientMiddleware from './middlewares/client'
 import routerMiddleware from './middlewares/router'
 
 function chainMiddleware(...middlewares) {
-  return store => next => action => {
+  return (store: any) => (next: Function) => (action: Object) => {
     return flowRight(...middlewares.map(middleware => middleware(store)))(next)(action)
   }
 }
