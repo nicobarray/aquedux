@@ -43,7 +43,7 @@ export default function createClient(options: AqueduxConfig) {
     socket.send(JSON.stringify(action))
   }
 
-  function onMessage(socket, message) {
+  function onMessage(message) {
     const json = (() => {
       try {
         return JSON.parse(message.data)
@@ -93,28 +93,32 @@ export default function createClient(options: AqueduxConfig) {
   }
 
   function onStart(isRestart = false) {
+    // Enable the stop callback and disable the start one.
     unregister(events.EVENT_CLIENT_START, onStart)
     register(events.EVENT_CLIENT_STOP, onStop)
-    register(events.EVENT_CLIENT_RESTART, onRestart)
+
     register(events.EVENT_ACTION_SEND, onSend)
+    register(events.EVENT_CLIENT_RESTART, onRestart)
 
     socket = new SockJS(endpoint)
     socket.onopen = () => onOpen(isRestart)
-    socket.onclose = () => onStop(socket)
-    socket.onmessage = e => onMessage(socket, e)
+    socket.onclose = onStop
+    socket.onmessage = onMessage
   }
 
-  function onStop(socket) {
+  function onStop() {
     socket && socket.close()
 
-    unregister(events.EVENT_ACTION_SEND, onSend)
+    // Enable the start callback and disable the stop one.
     unregister(events.EVENT_CLIENT_STOP, onStop)
-    unregister(events.EVENT_CLIENT_RESTART, onRestart)
     register(events.EVENT_CLIENT_START, onStart)
+
+    unregister(events.EVENT_ACTION_SEND, onSend)
+    unregister(events.EVENT_CLIENT_RESTART, onRestart)
   }
 
   function onRestart() {
-    onStop(socket)
+    onStop()
     onStart(true)
   }
 
