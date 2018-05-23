@@ -17,11 +17,7 @@ export default (_store: any) => (next: any) => (action: any) => {
 
   if (isWiredActionType(type)) {
     raise(events.EVENT_ACTION_SEND, action)
-
-    if (!isInternalActionType(type)) {
-      // Only internals wired action types should reach reducers synchronously
-      return
-    }
+    return
   } else if (type === actionTypes.AQUEDUX_CLIENT_MESSAGE_RECEIVED) {
     const { originalActionType, ...originalAction } = action
 

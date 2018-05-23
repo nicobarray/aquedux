@@ -15,7 +15,7 @@ function chainMiddleware(...middlewares) {
 }
 
 function createMiddleware() {
-  return chainMiddleware(clientMiddleware, channelMiddleware, routerMiddleware)
+  return chainMiddleware(clientMiddleware, routerMiddleware, channelMiddleware)
 }
 
 export default function createAquedux(options: AqueduxConfig) {
