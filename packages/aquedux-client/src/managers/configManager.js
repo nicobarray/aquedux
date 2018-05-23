@@ -12,14 +12,12 @@ type ChannelDef =
 export type AqueduxConfig = {
   hydratedActionTypes: Array<string>,
   endpoint: string,
-  logLevel: string,
   channels: Array<ChannelDef>
 }
 
 let config = {
   hydratedActionTypes: [],
   endpoint: '127.0.0.1',
-  logLevel: process.env.AQUEDUX_LOG_LEVEL || 'info',
   channels: []
 }
 
@@ -51,7 +49,7 @@ const setConfig = (newConfig: AqueduxConfig): AqueduxConfig => {
     const { name, reducer } = (() => {
       if (typeof def === 'string') {
         const name = def
-        const reducer = (prevState, action) => ({ [name]: action.snapshot })
+        const reducer = (prevState, snapshot) => ({ ...prevState, [name]: snapshot })
         return { name, reducer }
       } else {
         return def

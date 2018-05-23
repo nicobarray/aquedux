@@ -1,6 +1,6 @@
 // @flow
 
-type ReduceSnapshotFn = (Object, { type: string, snapshot: Object }) => Object
+type ReduceSnapshotFn = (prevState: Object, snapshot: Object) => Object
 
 type Sub = {
   name: string,
@@ -22,8 +22,8 @@ export default {
   define: (name: string, reducer: ReduceSnapshotFn): void => {
     innerState.definitions[name] = reducer
   },
-  reduce: (name: string) => (prevState: Object, action: { type: string, snapshot: Object }) => {
-    return innerState.definitions[name](prevState, action)
+  reduce: (name: string) => (prevState: Object, snapshot: Object) => {
+    return innerState.definitions[name](prevState, snapshot)
   },
   addSub: (sub: Sub): void => {
     innerState.subscription.push(sub)

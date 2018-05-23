@@ -28,7 +28,7 @@ function wrapStoreReducer(reducer) {
         )
       }
 
-      const newState = channelManager.reduce(channelOrTemplateName)(state, action)
+      const newState = channelManager.reduce(channelOrTemplateName)(state, action.snapshot)
 
       return reducer(newState, action)
     }
