@@ -2,7 +2,7 @@
 
 import channelManager from '../managers/channelManager'
 import actionTypes from '../constants/actionTypes'
-import { composeNameFromAction } from '../utils'
+import { channelNameFromAction } from '../utils'
 
 export default (_store: any) => (next: any) => (action: any) => {
   const { type } = action
@@ -18,7 +18,7 @@ export default (_store: any) => (next: any) => (action: any) => {
       channelManager.addSub(sub)
     }
   } else if (type === actionTypes.AQUEDUX_CLIENT_CHANNEL_LEAVE) {
-    const name = composeNameFromAction(action)
+    const name = channelNameFromAction(action)
     channelManager.delSub(name)
   }
 
