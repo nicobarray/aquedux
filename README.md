@@ -55,55 +55,26 @@ Let see the required steps to integrate Aquedux in your current Redux workflow f
 ## The client app
 
 ```js
-import { createAqueduxClient, createStore, aqueduxReducer, combineReducer, subscribeToChannel } from 'aquedux-client'
+import { applyMiddleware } from 'redux'
+import { createStore, createAquedux, subscribe } from 'aquedux-client'
 
 // The app reducer is shared with the server app.
-import rootReducer from './reducers'
+import reducer from './reducers'
 
-const appReducer = combineReducer({
-  ...rootReducer,
-  aquedux: aqueduxReducer
+const aquedux = createAquedux({
+  hydratedActionTypes: ['ADD_TODO', 'TOGGLE_TODO'],
+  endpoint: 'http://localhost:3001/aquedux',
+  channels: [ 'todos' ]
 })
-
-const configureAquedux = (store, endpoint) => {
-  // Set actionTypes that should be sent over Aquedux and its enpoint
-  const aqueduxOptions = {
-    hydratedActionTypes: ['ADD_TODO', 'TOGGLE_TODO'],
-    endpoint
-  }
-
-  // Create the client instance.
-  const client = createAqueduxClient(store, aqueduxOptions)
-
-  /* 
-  ** Declare a channel with a way to reduce its snapshot. This is used to group action types and store slices.
-  ** The reducer tells Aquedux how to reduce into your state the slice sent over by Aquedux as the channel
-  ** initial state.
-  */
-  client.addChannel('todos', (oldState, action) => {
-    return {
-      ...oldState,
-      todos: action.snapshot
-    }
-  })
-
-  return client
-}
-
-const store = createStore(appReducer);
-
-// The default route served by aquedux-server is $YOUR_HOST/aquedux
-const aquedux = configureAquedux(store, 'http://localhost:3031/aquedux')
-
-aquedux.start()
-
-// In a real world app, this dispatch should be done in a container/component at route level or cDM.
+  
+const store = createStore(reducer, applyMiddleware(aquedux));
 
 /* 
 ** When subscribing to a channel you are telling Aquedux to receive all related actions in real-time.
 ** The first action you receive is the channel's state snapshot.
+** In a real world app, this dispatch should be done in a container/component at route level or cDM.
 */
-store.dispatch(subscribeToChannel('todos'))
+store.dispatch(subscribe('todos'))
 ```
 
 ## The server app
