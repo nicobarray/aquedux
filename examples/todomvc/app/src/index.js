@@ -31,8 +31,6 @@ import 'todomvc-app-css/index.css'
 const aquedux = createAquedux({
   hydratedActionTypes: [ADD_TODO, DELETE_TODO, EDIT_TODO, COMPLETE_TODO, COMPLETE_ALL_TODOS, CLEAR_COMPLETED],
   endpoint: 'http://localhost:4242/aquedux',
-  timeout: 10000,
-  logLevel: 'trace',
   channels: [
     'todos'
   ]
