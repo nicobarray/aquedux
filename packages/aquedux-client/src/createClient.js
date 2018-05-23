@@ -4,7 +4,7 @@ import SockJS from 'sockjs-client'
 
 import actionTypes from './constants/actionTypes'
 import configManager, { type AqueduxConfig } from './managers/configManager'
-import { raise, register, unregister, events } from './utils/eventHub'
+import { raise, register, events } from './utils/eventHub'
 import localStorage from './utils/localStorage'
 
 export default function createClient(options: AqueduxConfig) {
@@ -81,46 +81,30 @@ export default function createClient(options: AqueduxConfig) {
     raise(events.EVENT_ACTION_RECEIVE, action)
   }
 
-  function onOpen(isRestart = false) {
+  function onOpen() {
     // Try to resubscribe to previously subscribed channels before loosing connection.
-    if (isRestart) {
-      raise(events.EVENT_CHANNEL_RESUBSCRIBE)
-    } else {
-      // Send stacked actions that occured when the socket was not ready yet.
-      actionStack.forEach(onSend)
-      actionStack = []
-    }
+    raise(events.EVENT_CHANNEL_RESUBSCRIBE)
+
+    // Send stacked actions that occured when the socket was not ready yet.
+    actionStack.forEach(onSend)
+    actionStack = []
   }
 
-  function onStart(isRestart = false) {
-    // Enable the stop callback and disable the start one.
-    unregister(events.EVENT_CLIENT_START, onStart)
-    register(events.EVENT_CLIENT_STOP, onStop)
-
-    register(events.EVENT_ACTION_SEND, onSend)
-    register(events.EVENT_CLIENT_RESTART, onRestart)
-
+  function onStart() {
     socket = new SockJS(endpoint)
-    socket.onopen = () => onOpen(isRestart)
+    socket.onopen = onOpen
     socket.onclose = onStop
     socket.onmessage = onMessage
   }
 
   function onStop() {
     socket && socket.close()
-
-    // Enable the start callback and disable the stop one.
-    unregister(events.EVENT_CLIENT_STOP, onStop)
-    register(events.EVENT_CLIENT_START, onStart)
-
-    unregister(events.EVENT_ACTION_SEND, onSend)
-    unregister(events.EVENT_CLIENT_RESTART, onRestart)
+    socket = null
   }
 
-  function onRestart() {
-    onStop()
-    onStart(true)
-  }
+  register(events.EVENT_ACTION_SEND, onSend)
+  register(events.EVENT_CLIENT_START, onStart)
+  register(events.EVENT_CLIENT_STOP, onStop)
 
   onStart()
 }

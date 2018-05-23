@@ -3,8 +3,7 @@ export const events = {
   EVENT_ACTION_RECEIVE: '@aquedux-event/action-receive',
   EVENT_CHANNEL_RESUBSCRIBE: '@aquedux-event/channel-resubscribe',
   EVENT_CLIENT_START: '@aquedux-event/client-start',
-  EVENT_CLIENT_STOP: '@aquedux-event/client-stop',
-  EVENT_CLIENT_RESTART: '@aquedux-event/client-restart'
+  EVENT_CLIENT_STOP: '@aquedux-event/client-stop'
 }
 
 // import localStorage from '../utils/localStorage'

@@ -21,7 +21,3 @@ export const start = () => ({
 export const stop = () => ({
   type: actionTypes.AQUEDUX_CLIENT_STOP
 })
-
-export const restart = () => ({
-  type: actionTypes.AQUEDUX_CLIENT_RESTART
-})

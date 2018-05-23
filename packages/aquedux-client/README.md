@@ -101,7 +101,3 @@
   ### stop()
 
   An action creator to stop the socket connection to aquedux-server.
-
-  ### restart()
-
-  An action creator to restart the connection to aquedux-server. 
