@@ -170,13 +170,13 @@ You can also check out each package for their API documentation:
 
 * Is it used somewhere?
 
-At Winamax. We uses it on two projects that helped shape Aquedux the way it is. We
-hope that by open-sourcing the project, more project will uses it and make its API
+At Winamax. We use it on two projects that helped shape Aquedux the way it is. We
+hope that by open-sourcing the project, more projects will use it and make its API
 and internals evolve.
 
 * Can I contribute?
 
-If you find bugs or have enhancement proposal, do not esitate to create an issue. The authors will continue to improve it and watch over the project. When aquedux
+If you find bugs or have enhancement proposal, do not hesitate to create an issue. The authors will continue to improve it and watch over the project. When aquedux
 reaches a more stable phase, we'll gladely accept pull requests.
 
 # Authors
