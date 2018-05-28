@@ -1,18 +1,7 @@
-import createAqueduxClient from './network/client'
-import aqueduxReducer from './reducers'
-import middleware from './network/middleware'
-import { subscribeToChannel, unsubscribeFromChannel } from './network/channels'
+// @flow
+
+import createAquedux from './createAquedux'
 import createStore from './createStore'
-import wrapStoreReducer from './wrapStoreReducer'
+import { subscribe, unsubscribe, start, stop } from './actionCreators'
 
-const aqueduxMiddleware = middleware
-
-export {
-  createStore,
-  aqueduxMiddleware,
-  aqueduxReducer,
-  createAqueduxClient,
-  wrapStoreReducer,
-  subscribeToChannel,
-  unsubscribeFromChannel
-}
+export { createStore, createAquedux, subscribe, unsubscribe, start, stop }

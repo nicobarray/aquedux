@@ -3,67 +3,101 @@
 
   Redux over the wire - client side
 
-  ## createStore(store, ...enhancers)
+  ## Quickstart
 
-  Returns a Redux store and initiate the aquedux client connection. It is a facade over the Redux's `createStore` method. See next method for more information about the option parameter.
-
-  :warning: This method is a shortcut that do the following job.
-  * Create a Redux's store with an aquedux wrapper other it.
-  * Add the redux-thunk & aquedux in the middleware chain.
-  * Create an aquedux client instance and starts the websocket connection.
+  To enable your client app with aquedux, do the following:
   
-  Therefore you do not have to call `createAqueduxClient`, `aqueduxMiddleware`, `aqueduxReducer` and `wrapStoreReducer`. For a more advance usage, create the Redux store your own way and use thoses methods to add aquedux support.
+  * Initialize the aquedux middleware with the `aquedux = createAquedux(...)` method.
+  * Create a redux store using our enhanced `createStore` method and apply it the newly created `aquedux` middleware.
 
-  ## createAqueduxClient(store, options = {})
-
-  Returns an aquedux client used to send and listen to actions over a websocket connection with an aquedux-server instance.
-
-  * **store**: The app's Redux store. *Required*
-  * options: The client options. Understand the following keys:
-      * hydratedActionTypes: An array of Redux action types to send over the websocket. Default to `[]`.
-      * endpoint: The aquedux-server endpoint. Default to `'127.0.0.1'`.
-      * timeout: The delay in milliseonds before the client instance switches to a disconnected state and tries to reconnect. Default to `5000`.
-      * logLevel: The buyan log level to display. Can take either 'fatal', 'error', 'warn', 'info', 'debug' or 'trace'. Default to 'info'.
-
-  
-  ## aqueduxMiddleware
-
-  Returns the aquedux middleware that intercept actions to send them over the websocket connection. It must be added at the end of the middleware chain.
-
-  ## aqueduxReducer
-
-  The reducer used by aquedux to manager its dynamic state. It must be composed under the `aquedux` key with your app reducers. *Required*
+  Example:
 
   ```js
-    const reducer = composeReducers({
-      ...appReducers,
-      aquedux: aqueduxReducer
+    import { createStore, createAquedux } from 'aquedux-client'
+    import { applyMiddleware } from 'redux'
+
+    import todos from './my-todo-reducer'
+
+    const aquedux = createAquedux({
+      hydratedActionTypes: ['TODO_ADD', 'TODO_TOGGLE'],
+      endpoint: 'http://localhost:3001',
+      channels: [ 'todos' ]
     })
-    const store = createStore(reducer, ...)
+
+    const reducer = (prevState, action) => {
+      return {
+        ...prevState,
+        todos: todos(prevState.todos, action)
+      }
+    }
+
+    const store = createStore(reducer, { todos: {} }, applyMiddleware(aquedux))
   ```
 
-  ## wrapStoreReducer
+  ## API
 
-  A store wrapper that handles the rehydratation of the store's state when subscribing to an aquedux channel. *Required*
+  ### createStore(reducer, preloadedState, enhancer)
 
+  Returns a Redux store with an aquedux wrapper over your reducer and initiate the aquedux client connection. It is a facade over the Redux's `createStore` method. See next method for more information about the option parameter.
+  
+  See https://redux.js.org/api-reference/createstore to know more about the function arguments.
+
+  ### createAquedux(options = {})
+
+  Returns an aquedux middleware used to send and listen to actions over a websocket connection with an aquedux-server instance.
+
+  
+  * options: The client options. Understand the following keys:
+
+  | key                 | type                                                                  | defaultValue | description                                   |
+  | ------------------- | --------------------------------------------------------------------- | ------------ | --------------------------------------------- |
+  | hydratedActionTypes | `Array<string>`                                                       | `[]`         | Redux action types to send over the websocket |
+  | endpoint            | `string`                                                              | `127.0.0.1`  | The aquedux-server endpoint                   |
+  | channels            | `Array<string | { name: string, reduce: (Object, Object) => Object }` | []           | Channel definitions (see bellow)              |
+  
+
+  A channel definition can be of two shapes:
+
+      * A simple `string` identifying a root state key. The snapshot reducer is therefore defaulted.
+      * An object understanding the following keys:
+          * name: The `string` identiying the channel.
+          * reduce: A reduce function `(prevState, snapshot) => nextState`
+
+  Example:
   ```js
-    const reducer = wrapStoreReducer(
-      composeReducers({
-        ...appReducers,
-        aquedux: aqueduxReducer
-      })
-    )
-
-    const store = createStore(reducer, ...)
+    const aquedux = createAquedux({
+      hydratedActionTypes: ['TODO_ADD', 'TODO_TOGGLE'],
+      endpoint: 'https://my-awesome-endpoint.io/aquedux',
+      channels: [
+        'todos',
+        {
+          name: 'visibilityFilter',
+          reduce: (prevState, snapshot) => {
+            return {
+              ...prevState,
+              visibilityFilter: snapshot
+            }
+          }
+        }
+      ]
+    })
   ```
-
-  ## subscribeToChannel(name, id)
+  
+  ### subscribe(name, id)
 
   An action creator to subscribe to an aquedux channnel. When the action is sent other the socket, the server returns a state snapshot of the channel's data. After that, until you unsubscribe from the channel, you will receive and reduce every actions related to it. The channels are described through the aquedux client object method `addChannel`.
 
   * name: The channel's name. *Required*
   * id: The channel's id. Used only if you want to handle entities through this channel. Default to `undefined`.
 
-  ## unsubscribeFromChannel(name, id)
+  ### unsubscribe(name, id)
 
   An action creator to unsubscribe from an aquedux channnel. See above.
+
+  ### start()
+
+  An action creator to start the socket connection to aquedux-server. Aquedux initiate the connection by default. This is useful only if you have stopped the client with the `stop()` action.
+
+  ### stop()
+
+  An action creator to stop the socket connection to aquedux-server.

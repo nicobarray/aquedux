@@ -1,17 +1,37 @@
 // @flow
 
-import logger from '../utils/logger'
+import channelManager from './channelManager'
+
+type ChannelDef =
+  | string
+  | {
+      name: string,
+      reducer: (prevState: Object, action: Object) => Object
+    }
+
+export type AqueduxConfig = {
+  hydratedActionTypes: Array<string>,
+  endpoint: string,
+  channels: Array<ChannelDef>
+}
 
 let config = {
   hydratedActionTypes: [],
   endpoint: '127.0.0.1',
-  logLevel: process.env.AQUEDUX_LOG_LEVEL || 'info'
+  channels: []
 }
 
-export type AqueduxConfig = typeof config
+function validateChannelDefinitions(def: ChannelDef) {
+  const isDefault = typeof def === 'string'
+  const isCustom = !isDefault && def.hasOwnProperty('name') && def.hasOwnProperty('reducer')
 
-const setConfig = (newConfig: any): AqueduxConfig => {
-  config = Object.keys(newConfig).reduce((result, key) => {
+  if (!isDefault && !isCustom) {
+    throw new Error('The custom channel definition must contain the `name` and `reducer` keys.')
+  }
+}
+
+const setConfig = (newConfig: AqueduxConfig): AqueduxConfig => {
+  config = Object.keys(newConfig).reduce((result: Object, key: string) => {
     if (!config.hasOwnProperty(key)) {
       return result
     }
@@ -24,12 +44,19 @@ const setConfig = (newConfig: any): AqueduxConfig => {
     return merged
   }, config)
 
-  logger.level(config.logLevel)
+  config.channels.forEach(validateChannelDefinitions)
+  config.channels.forEach(def => {
+    const { name, reducer } = (() => {
+      if (typeof def === 'string') {
+        const name = def
+        const reducer = (prevState, snapshot) => ({ ...prevState, [name]: snapshot })
+        return { name, reducer }
+      } else {
+        return def
+      }
+    })()
 
-  logger.trace({
-    who: 'aqueduxClient::configManager',
-    what: 'config has been set',
-    config
+    channelManager.define(name, reducer)
   })
 
   return config
