@@ -1,5 +1,8 @@
-# <img src='https://user-images.githubusercontent.com/4137761/37289440-f7a26b68-2609-11e8-8c23-fb8b49c53c90.png' height='60'>
-> Redux over the wire
+<h1 align="center">
+  <img src="aquedux_logo.png" alt="svgr" title="aquedux" width="500">
+</h1>
+
+Redux over the wire
 
 Aquedux is a Redux enhancer that enables seamless real-time synchronization across many JavaScript clients.
 
@@ -18,7 +21,11 @@ Aquedux shares your App state across every connected instance. It can be a Node.
 
 It makes the writing of client and server app easy. There is no need to add another technical layer. If you know how to use Redux, you know how to use Aquedux.
 
-For more on this, check out this post: [Redux over the wire](https://medium.com/@nbarray/redux-over-the-wire-2a849d618ff5)
+For more on this, check out:
+
+* This post: [Redux over the wire](https://medium.com/@nbarray/redux-over-the-wire-2a849d618ff5)
+
+* This lightning talk @ ReactEurope 2018: [Lightning Talk](https://www.youtube.com/watch?v=pnb5DV3q8n0)
 
 # Installation
 
