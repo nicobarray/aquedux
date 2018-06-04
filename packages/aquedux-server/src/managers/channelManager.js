@@ -1,25 +1,29 @@
 // @flow
 
-// Types.
-import type { Store, State, Action, SubscriptionAction } from '../constants/types'
+import Maybe from 'crocks'
 
-import { selectors } from '../reducers'
-import actions from '../actions'
+import type { SubscriptionAction } from '../constants/types'
 import { subActionToChannelName, subActionToTemplateName } from '../network/subscribe'
+import configManager from './configManager'
+
+type Action = {
+  type: string
+}
 
 type Channel = {
   name: string,
   predicate: Action => boolean,
-  reducer: (State, Action) => Object
+  reducer: (() => Object, Action) => Object,
+  matchPattern: string
 }
 
 type Template = {
   name: string,
   createPredicate: string => Action => boolean,
-  reducer: (State, Action) => Object
+  reducer: (() => Object, Action) => Object
 }
 
-type InternalState = {
+type State = {
   channels: {
     [string]: Channel
   },
@@ -28,107 +32,185 @@ type InternalState = {
   }
 }
 
-const internalState: InternalState = {
+const state: State = {
   channels: {},
   templates: {}
 }
 
-const findChannelNameForAction = (state: State, action: Action): string =>
-  getChannelHandlersFromAction(state, action).name
+// Helpers
 
-const getChannelHandlersFromName = (channelName: string): Channel => {
-  if (!channelName || !internalState.channels.hasOwnProperty(channelName)) {
-    throw new Error(`${channelName} do not match any channel. Did you call addChannelHandlers?`)
-  }
-  return internalState.channels[channelName]
+const { Just, Nothing } = Maybe
+
+function safeChannel(name: string): Maybe {
+  return state.channels.hasOwnProperty(name) ? Just(state.channels[name]) : Nothing()
 }
 
-const getTemplateFromName = (templateName: string): Template => {
-  if (!templateName || !internalState.templates.hasOwnProperty(templateName)) {
-    throw new Error(`${templateName} do not match any template. Did you call addTemplateHandlers?`)
-  }
-  return internalState.templates[templateName]
+function safeTemplate(name: string): Maybe {
+  return state.templates.hasOwnProperty(name) ? Just(state.templates[name]) : Nothing()
 }
 
-const addChannelHandlers = (
+// Api
+
+function defineChannel(
   channelName: string,
   predicate: Action => boolean,
-  reducer: (State, Action) => Object
-): void => {
-  if (internalState.channels.hasOwnProperty(channelName) || internalState.templates.hasOwnProperty(channelName)) {
-    throw new Error(`The channel ${channelName} is already defined. A channel is unique.`)
+  reducer: (() => Object, Action) => Object,
+  matchPattern: string
+): void {
+  if (!safeChannel(channelName).equals(Nothing())) {
+    return
   }
 
-  internalState.channels[channelName] = {
+  if (!safeTemplate(channelName).equals(Nothing())) {
+    return
+  }
+
+  state.channels[channelName] = {
     name: channelName,
     predicate,
-    reducer
+    reducer,
+    matchPattern
   }
 }
 
-const addTemplateHandlers = (
+function addDefaultChannel(name: string): void {
+  defineChannel(
+    name,
+    action => configManager.getConfig().hydratedActionTypes.indexOf(action.type) !== -1,
+    (getState, _action) => {
+      return getState()[name]
+    },
+    name
+  )
+}
+
+function addChannel(channel: Channel): void {
+  defineChannel(channel.name, channel.predicate, channel.reducer, channel.matchPattern)
+}
+
+function all(array, fn) {
+  return array.reduce((check, value) => check && fn(value), true)
+}
+
+function isValidChannel(channel: Channel): boolean {
+  return all(['name', 'predicate', 'reducer'], channel.hasOwnProperty)
+}
+
+function defineTemplate(
   channelName: string,
   createPredicate: string => Action => boolean,
-  reducer: (State, Action) => Object
-): void => {
-  if (internalState.channels.hasOwnProperty(channelName) || internalState.templates.hasOwnProperty(channelName)) {
-    throw new Error(`The channel ${channelName} is already defined. A channel is unique.`)
+  reducer: (Object, Action) => Object
+): void {
+  if (!safeChannel(channelName).equals(Nothing())) {
+    return
   }
 
-  internalState.templates[channelName] = {
+  if (!safeTemplate(channelName).equals(Nothing())) {
+    return
+  }
+
+  state.templates[channelName] = {
     name: channelName,
     createPredicate,
     reducer
   }
 }
 
-const getChannelHandlersFromAction = (state: State, action: Action): Channel => {
-  const channel = selectors.channels
-    .listChannels(state)
-    .map(channel => internalState.channels[channel.name])
+function addTemplate(template: Template): void {
+  defineTemplate(template.name, template.createPredicate, template.reducer)
+}
+
+function isValidTemplate(template: Template): boolean {
+  return all(['name', 'createPredicate', 'reducer'], template.hasOwnProperty)
+}
+
+function createChannelFromTemplate(subAction: SubscriptionAction): Channel {
+  const channelName = subActionToChannelName(subAction)
+
+  // If the template is already instantiated.)
+  if (state.channels.hasOwnProperty(channelName)) {
+    return state.channels[channelName]
+  }
+
+  // Else create the channel from template.
+  const templateName = subActionToTemplateName(subAction)
+  const maybeTemplate = safeTemplate(templateName)
+
+  // $FlowFixMe: subAction has id field (checked by subActionToChannelName)
+  const id = (subAction.id: string)
+
+  defineChannel(channelName, maybeTemplate.value().createPredicate(id), maybeTemplate.value().reducer, channelName)
+
+  return getChannelHandlersFromName(channelName)
+}
+
+// Selectors
+
+function getChannelHandlersFromAction(action: Action): Channel {
+  const channel = Object.keys(state.channels)
+    .map(channelName => state.channels[channelName])
     .find(channel => channel.predicate(action))
 
   if (!channel) {
+    // TODO: change this error to a publicly understandable error. Reference the createAquedux option arg.
     throw new Error(
       `getChannelHandlersFromAction -- Action ${
         action.type
-      } does not match any channel. Did you call addChannel or addChannelTemplate?`
+      } does not match any channel. Did you call defineChannel or defineTemplate ?`
     )
   }
 
   return channel
 }
 
-const createChannelFromTemplate = (store: Store, subAction: SubscriptionAction): Channel => {
-  const channelName = subActionToChannelName(subAction)
-
-  // If the template is already instantiated.
-  if (internalState.channels.hasOwnProperty(channelName)) {
-    return internalState.channels[channelName]
+function getChannelHandlersFromName(channelName: string): Channel {
+  if (!channelName || !state.channels.hasOwnProperty(channelName)) {
+    throw new Error(`${channelName} do not match any channel. Did you call defineChannel?`)
   }
-
-  // Else create the channel from template.
-  const templateName = subActionToTemplateName(subAction)
-  const template = getTemplateFromName(templateName)
-
-  // $FlowFixMe: subAction has id field (checked by subActionToChannelName)
-  const id = (subAction.id: string)
-
-  addChannelHandlers(channelName, template.createPredicate(id), template.reducer)
-  store.dispatch(actions.channel.define(channelName, channelName))
-
-  return getChannelHandlersFromName(channelName)
+  return state.channels[channelName]
 }
 
-const checkChannelExists = (channelName: string): boolean =>
-  !!channelName && internalState.channels.hasOwnProperty(channelName)
+function findChannelNameForAction(action: Action): string {
+  return getChannelHandlersFromAction(action).name
+}
+
+function checkChannelExists(channelName: string): boolean {
+  return !!channelName && state.channels.hasOwnProperty(channelName)
+}
+
+function listChannelName() {
+  return Object.keys(state.channels)
+}
+
+function listChannels() {
+  return listChannelName().map(name => state.channels[name])
+}
+
+function listTemplates() {
+  return Object.keys(state.templates).map(name => state.templates[name])
+}
+
+function isTemplate(name: string): boolean {
+  return state.templates.hasOwnProperty(name)
+}
 
 export default {
-  addChannelHandlers,
-  addTemplateHandlers,
+  addChannel,
+  addDefaultChannel,
+  isValidChannel,
+
+  addTemplate,
+  isValidTemplate,
+
+  createChannelFromTemplate,
+
   getChannelHandlersFromAction,
   getChannelHandlersFromName,
   findChannelNameForAction,
-  createChannelFromTemplate,
-  checkChannelExists
+  checkChannelExists,
+
+  listChannelName,
+  listChannels,
+  listTemplates,
+  isTemplate
 }

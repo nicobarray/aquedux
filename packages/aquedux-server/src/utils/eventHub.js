@@ -1,8 +1,9 @@
-// FIXME: Should be deprecated in favor for EventEmitter or Redux
-export const EVENT_SEND_ACTION_TO_TANK = 'AQUAEVENT:ACTION_TO_TANK'
-export const EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK = 'AQUAEVENT:CHANNEL_TO_TANK'
+export const events = {
+  EVENT_SEND_ACTION_TO_TANK: '@aquedux-event/send-action-to-tank',
+  EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK: '@aquedux-event/send-channel-snapshot-to-tank'
+}
 
-export let eventMap = {}
+let eventMap = {}
 
 export const register = (channel, callback) => {
   if (!eventMap[channel]) {

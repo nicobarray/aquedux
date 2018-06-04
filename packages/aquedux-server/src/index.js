@@ -1,23 +1,23 @@
-import createAqueduxServer from './network/server'
-import aqueduxReducers from './reducers'
-import aqueduxMiddleware from './middleware'
+// TODO: To this
+import createAquedux from './createAquedux'
+import createStore from './createStore'
+
+// Private API
 import aqueduxActions from './actions/api'
 import { privateAnswer } from './utils/actionWrapper'
 import actionTypes from './actionTypes'
-import wrapStoreReducer from './wrapStoreReducer'
 import { subscribeToPrivateChannel } from './network/subscribe'
 import { getFragmentsInfo } from './network/routes/fragments'
 import { kickTank } from './managers/tankManager'
 
 export {
-  createAqueduxServer,
-  aqueduxReducers,
-  aqueduxMiddleware,
+  createAquedux,
+  createStore,
+  // Private API (do not document it)
   aqueduxActions,
   privateAnswer,
   subscribeToPrivateChannel,
   actionTypes,
-  wrapStoreReducer,
   getFragmentsInfo,
   kickTank
 }

@@ -18,8 +18,6 @@ const actionTypes = {
     AQUEDUX_REMOVE_TYPE_SET: 'AQUEDUX_REMOVE_TYPE_SET'
   },
   tank: {
-    AQUEDUX_TANK_CONNECT: 'AQUEDUX_TANK_CONNECT',
-    AQUEDUX_TANK_DISCONNECT: 'AQUEDUX_TANK_DISCONNECT',
     AQUEDUX_TANK_SUBSCRIBE: 'AQUEDUX_TANK_SUBSCRIBE',
     AQUEDUX_TANK_UNSUBSCRIBE: 'AQUEDUX_TANK_UNSUBSCRIBE'
   },
@@ -35,8 +33,7 @@ const actionTypes = {
 }
 
 // For type infering only. See bellow.
-export const flatTypes = { ...actionTypes.queue, ...actionTypes.api, ...actionTypes.tank, ...actionTypes.channel }
-
-export type AqueduxActionType = $Keys<typeof flatTypes>
+const allTypes = { ...actionTypes.queue, ...actionTypes.api, ...actionTypes.tank, ...actionTypes.channel }
+export type AqueduxActionType = $Keys<typeof allTypes>
 
 export default actionTypes

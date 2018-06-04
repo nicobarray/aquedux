@@ -1,16 +1,12 @@
+// @flow
+
 import http from 'http'
 import sockjs from 'sockjs'
 import path from 'path'
 
 import logger from '../utils/logger'
 
-import actions from '../actions'
 import tankManager from '../managers/tankManager'
-
-import getFragmentsRoute from './routes/fragments'
-import getFragmentRoute from './routes/fragment'
-import getChannelsRoute from './routes/channels'
-import getTanksRoute from './routes/tanks'
 
 const createSocketServer = (store, handleConnection, handleClose, handleMessage, route) => {
   // Create the socket server that is passed to httpServer.
@@ -22,38 +18,27 @@ const createSocketServer = (store, handleConnection, handleClose, handleMessage,
   // Its form is as follow:
 
   // Hook all usuall sockjs callbacks to our handlers.
-  socketServer.on('connection', conn => {
-    // Register the socket as a Aquedux tank (optimistic for now).
-    store.dispatch(actions.tank.connect(conn.id))
-    tankManager.addSocket(conn.id, conn)
+  socketServer.on('connection', socket => {
+    logger.trace({ type: 'new connection', id: socket.id })
+    // Register the socket as an Aquedux tank (optimistic for now).
+    tankManager.addTank(socket.id, socket)
 
-    logger.trace({
-      who: 'aquedux::connection',
-      what: conn.id
-    })
+    handleConnection(socket)
 
-    handleConnection(conn)
-
-    conn.on('data', message => {
+    socket.on('data', message => {
       const json = JSON.parse(message)
       // Check if the message could be an action, if not ignore the message.
       if (json.type) {
-        logger.trace({
-          who: 'socket server',
-          what: 'action road',
-          where: 'received by SockJS',
-          step: 0,
-          type: json.type
-        })
-        handleMessage(conn.id, json)
+        logger.trace({ type: 'new message', id: socket.id, message })
+        handleMessage(socket.id, json)
       }
     })
 
-    conn.on('close', () => {
-      handleClose(conn)
+    socket.on('close', () => {
+      logger.trace({ type: 'close connection', id: socket.id })
+      handleClose(socket)
       // Remove the tank from the tanks object.
-      store.dispatch(actions.tank.disconnect(conn.id))
-      tankManager.removeSocket(conn.id)
+      tankManager.removeTank(socket.id)
     })
   })
 

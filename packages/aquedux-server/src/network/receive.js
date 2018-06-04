@@ -23,14 +23,6 @@ const receive = (dispatch, tankId, action) => {
     meta
   }
 
-  logger.trace({
-    who: 'receive',
-    what: 'action road',
-    where: "dispatch'd to local redux",
-    step: 1,
-    type: water.type
-  })
-
   dispatch(water)
 }
 

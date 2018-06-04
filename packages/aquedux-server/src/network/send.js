@@ -1,13 +1,13 @@
+// @flow
+
 import jwt from 'jsonwebtoken'
 import omit from 'lodash/omit'
-
-import logger from '../utils/logger'
 
 import configManager from '../managers/configManager'
 
 // This method is the ONLY one that can use sockjs write method.
 // It removes the tankId AND strip the meta field from the action.
-const send = (tank, action) => {
+const send = (socket: any, action: Object) => {
   const { secret } = configManager.getConfig()
   // The water is an action ready to be sent on the socket.
 
@@ -25,14 +25,7 @@ const send = (tank, action) => {
     token: jwt.sign(meta, secret)
   }
 
-  logger.trace({
-    who: 'send',
-    what: 'action road',
-    where: 'send through SockJS',
-    step: 8,
-    type: action.type
-  })
-  tank.conn.write(JSON.stringify(water))
+  socket.write(JSON.stringify(water))
 }
 
 export default send

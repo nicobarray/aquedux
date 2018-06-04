@@ -8,26 +8,15 @@ import configManager from '../managers/configManager'
 import { initRedisConnection } from '../redis/connections'
 import * as eventHub from '../utils/eventHub'
 import logger from '../utils/logger'
-import actions from '../actions'
 import mapActionToChannelId from '../mapActionToChannelId'
-import { selectors } from '../reducers'
-import { addChannel, addChannelTemplate } from './channels'
 import receive from './receive'
 import send from './send'
 import createSocketServer from './socketServer'
-
-let ownId = () => undefined
-export const getOwnId = () => {
-  return ownId()
-}
 
 const createAqueduxServer = (store: Store, options: any = {}) => {
   const { onConnection, onClose, routePrefix } = configManager.setConfig(options)
 
   initRedisConnection()
-
-  // Bind ownId to store.
-  ownId = () => selectors.queue.getId(store.getState())
 
   const handleMessage = (tankId, action) => {
     receive(store.dispatch, tankId, action)
@@ -40,12 +29,6 @@ const createAqueduxServer = (store: Store, options: any = {}) => {
     const { tankId, action } = args
 
     if (actionTypes.tank.hasOwnProperty(action.type)) {
-      logger.trace({
-        who: 'server::EVENT_SEND_ACTION_TO_TANK',
-        what: 'internal tank action ignored',
-        type: action.type
-      })
-
       return
     }
 
@@ -58,30 +41,21 @@ const createAqueduxServer = (store: Store, options: any = {}) => {
       return
     }
 
-    const tank = { conn: tankManager.getSocket(tankId) }
-
-    logger.trace({
-      who: 'server',
-      what: 'action road',
-      where: 'send back to client',
-      step: 7,
-      type: action.type
-    })
-
-    send(tank, action)
+    send(tankManager.getTank(tankId).socket, action)
   })
 
   // This event is for sending channel data to a single tank.
   eventHub.register(eventHub.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, ({ channelName, subAction }) => {
     logger.debug({ who: 'server', what: 'send channel snapshot to tank', channelName, subAction })
-    const tank = { conn: tankManager.getSocket(subAction.tankId) }
+
     const channel = channelManager.getChannelHandlersFromName(channelName)
     const snapshotAction = actions.channel.snapshot(
       subAction.name,
       subAction.id,
       channel.reducer(store.getState, subAction.id)
     )
-    send(tank, snapshotAction)
+
+    send(tankManager.getTank(subAction.tankId).socket, snapshotAction)
   })
 
   return {

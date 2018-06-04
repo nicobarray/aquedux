@@ -7,7 +7,6 @@ import until from '../redis/until'
 import * as eventHub from '../utils/eventHub'
 import logger from '../utils/logger'
 import { selectors } from '../reducers'
-import actions from '../actions'
 
 export const subActionToChannelName = (subAction: SubscriptionAction): string => {
   const channelPrefix = subAction.name
@@ -26,14 +25,6 @@ export const subActionToTemplateName = (subAction: SubscriptionAction): string =
 
 export const subscribeFromAction = async (store: Store, subAction: SubscriptionAction) => {
   const channelName = subActionToChannelName(subAction)
-
-  logger.trace({
-    who: 'subscribe',
-    what: 'action road',
-    where: 'subscribing to channel',
-    step: 3,
-    channelName
-  })
 
   subscribe(store, subAction, channelName)
 

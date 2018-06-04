@@ -1,60 +1,85 @@
-import type { Connection } from 'sockjs'
-
 // @flow
 
+import type { Connection } from 'sockjs'
+
+export type Tank = {|
+  socket: Connection,
+  channels: Array<string>,
+  id: string
+|}
+
 type InternalState = {
-  tanks: {
-    [string]: {
-      conn: Connection,
-      id: string
-    }
-  }
+  [string]: Tank
 }
 
-const internalState: InternalState = {
-  tanks: {}
-}
+let state: InternalState = {}
 
-const addSocket = (tankId: string, conn: Connection): void => {
-  if (internalState.tanks.hasOwnProperty(tankId)) {
-    throw new Error(`Tank ${tankId} is already connected.`)
+function addTank(tankId: string, socket: Connection): void {
+  if (state.hasOwnProperty(tankId)) {
+    throw new Error(`Tank ${tankId} is already registered in the tank manager.`)
   }
-  internalState.tanks[tankId] = {
+
+  state[tankId] = {
     id: tankId,
-    conn
+    socket,
+    channels: []
   }
 }
 
-const removeSocket = (tankId: string): void => {
-  if (!internalState.tanks.hasOwnProperty(tankId)) {
-    throw new Error(`Tank ${tankId} does not exists. You forgot to add its sockJS connection?`)
+function removeTank(tankId: string, kick: boolean = false): void {
+  if (!state.hasOwnProperty(tankId)) {
+    throw new Error(`Tank ${tankId} does not exists. Did you forgot to call tankManager.addTank ?`)
   }
-  const { [tankId]: removed, ...otherTanks } = internalState.tanks
-  internalState.tanks = otherTanks
-  return removed
+
+  // There used to be a try-catch her. Why ? Let's see what pop's up without it.
+  if (kick) {
+    state[tankId].socket.close()
+  }
+
+  delete state[tankId]
 }
 
-const getSocket = (tankId: string): Connection => {
-  if (!internalState.tanks.hasOwnProperty(tankId)) {
-    throw new Error(`Tank ${tankId} does not exists. You forgot to add its sockJS connection?`)
+function getTank(tankId: string): Tank {
+  if (!state.hasOwnProperty(tankId)) {
+    throw new Error(`Tank ${tankId} does not exists. Did you forgot to call tankManager.addTank ?`)
   }
-  const { [tankId]: tank } = internalState.tanks
-  return tank.conn
+
+  return state[tankId]
 }
 
-const listAll = (): Array<{ id: string, conn: Connection }> =>
-  Object.keys(internalState.tanks).map(key => internalState[key])
+function listAll(): Array<Tank> {
+  return Object.keys(state).map(key => state[key])
+}
+
+function subscribe(tankId: string, channelName: string): void {
+  if (!state.hasOwnProperty(tankId)) {
+    throw new Error(`Tank ${tankId} does not exists. Did you forgot to call tankManager.addTank ?`)
+  }
+
+  if (state[tankId].channels.indexOf(channelName) !== -1) {
+    throw new Error(`Tank ${tankId} has already subscribe to ${channelName}.`)
+  }
+
+  state[tankId].channels.push(channelName)
+}
+
+function unsubscribe(tankId: string, channelName: string): void {
+  if (!state.hasOwnProperty(tankId)) {
+    throw new Error(`Tank ${tankId} does not exists. Did you forgot to call tankManager.addTank ?`)
+  }
+
+  if (state[tankId].channels.indexOf(channelName) !== -1) {
+    throw new Error(`Tank ${tankId} is not subscribe to ${channelName}.`)
+  }
+
+  state[tankId].channels = state[tankId].channels.filter(name => name !== channelName)
+}
 
 export default {
-  addSocket,
-  removeSocket,
-  getSocket,
-  listAll
-}
-
-export const kickTank = tankId => {
-  try {
-    const tank = removeSocket(tankId)
-    tank.conn.close()
-  } catch (err) {}
+  addTank,
+  removeTank,
+  getTank,
+  listAll,
+  subscribe,
+  unsubscribe
 }

@@ -1,8 +1,16 @@
 // @flow
 
 import keygen from 'keygenerator'
+import uuid from 'uuid'
 
 import logger from '../utils/logger'
+import channelManager from './channelManager'
+
+// type ChannelDefinition = {
+//   name: string,
+//   pattern: ?string,
+//   template: boolean
+// }
 
 let config = {
   queueLimit: 0,
@@ -16,14 +24,18 @@ let config = {
    * or client reconnection on a different server
    */
   secret: null,
-
+  host: '0.0.0.0',
+  port: 4242,
+  channels: [],
+  templates: [],
   redisHost: process.env.DB_PORT_6379_TCP_ADDR || '127.0.0.1', // Default redis env var
   redisPort: process.env.DB_PORT_6379_TCP_PORT || '6379', // Default redis env var
 
   doFragmentSnapshot: (prevState: any): any => prevState,
 
   onConnection: (_socket: any) => {},
-  onClose: (_socket: any) => {}
+  onClose: (_socket: any) => {},
+  serverId: uuid.v4()
 }
 
 export type AqueduxConfig = typeof config
@@ -53,29 +65,35 @@ const setConfig = (newConfig: any): AqueduxConfig => {
     if (!config.hasOwnProperty(key)) {
       logger.warn({
         who: 'configManager',
-        what: 'Unkown config key',
+        what: 'Unknown config key',
         key
       })
+
       return result
     }
 
-    const merged: AqueduxConfig = {
+    return {
       ...result,
       [key]: newConfig[key]
     }
-
-    return merged
   }, config)
 
   logger.level(config.logLevel)
+
+  config = configValidate(config)
+
+  config.channels.filter(channel => typeof channel === 'string').forEach(channelManager.addDefaultChannel)
+  config.channels
+    .filter(channel => typeof channel !== 'string')
+    .filter(channelManager.isValidChannel)
+    .forEach(channelManager.addChannel)
+  config.templates.filter(channelManager.isValidTemplate).forEach(channelManager.addTemplate)
 
   logger.trace({
     who: 'configManager',
     what: 'config has been set',
     config
   })
-
-  config = configValidate(config)
 
   return config
 }
