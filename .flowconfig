@@ -1,5 +1,6 @@
 [ignore]
 .*/build
+.*/examples
 <PROJECT_ROOT>/examples/.*
 
 [include]

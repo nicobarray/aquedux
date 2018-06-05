@@ -35,19 +35,21 @@ export const subscribeFromAction = async (store: Store, subAction: SubscriptionA
   // TODO: This should be an action dispatch and the result handled in a middleware.
   eventHub.raise(eventHub.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, {
     channelName,
-    subAction
+    subAction,
+    state: store.getState()
   })
 }
 
 export const unsubscribeFromAction = (store: Store, subAction: SubscriptionAction) => {
   const tankId = subAction.tankId
+
   if (!tankId) {
     throw new Error('Action ${action.type} does not have a tank ID.')
   }
 
   const channelName = subActionToChannelName(subAction)
 
-  unsubscribe(store, tankId, channelName)
+  unsubscribe(tankId, channelName)
 }
 
 export const unsubscribeFromChannelName = (store: Store, action: Action, channelPrefix: string, id: ?string) => {
@@ -56,7 +58,7 @@ export const unsubscribeFromChannelName = (store: Store, action: Action, channel
     throw new Error('Action ${action.type} does not have a tank ID.')
   }
   const channelName = !id ? channelPrefix : `${channelPrefix}-${id}`
-  unsubscribe(store, tankId, channelName)
+  unsubscribe(tankId, channelName)
 }
 
 export const subscribeToPrivateChannel = async (store: Store, channelName: string): Promise<void> => {
@@ -113,7 +115,7 @@ const subscribe = (store: Store, subAction: SubscriptionAction, channelName: str
   store.dispatch(actions.tank.subscribe(subAction.tankId, channelName))
 }
 
-const unsubscribe = (store: Store, tankId: string, channelName: string) => {
+const unsubscribe = (tankId: string, channelName: string) => {
   // TODO: This action could remove unused channel definitions in the redux store.
   store.dispatch(actions.tank.unsubscribe(tankId, channelName))
   // TODO: Here unload queues that no one listen to.

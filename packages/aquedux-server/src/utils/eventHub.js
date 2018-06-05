@@ -1,6 +1,7 @@
 export const events = {
   EVENT_SEND_ACTION_TO_TANK: '@aquedux-event/send-action-to-tank',
-  EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK: '@aquedux-event/send-channel-snapshot-to-tank'
+  EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK: '@aquedux-event/send-channel-snapshot-to-tank',
+  EVENT_ACTION_RECEIVED: '@aquedux-event/action-received'
 }
 
 let eventMap = {}

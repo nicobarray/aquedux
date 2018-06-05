@@ -100,6 +100,10 @@ function safeQueue(name: string): Maybe {
   return state.hasOwnProperty(name) ? Maybe.Just(state[name]) : Maybe.Nothing()
 }
 
+function listQueues(): Array<QueueState> {
+  return Object.keys(state).map(key => state[key])
+}
+
 function hasNoQueue(name: string): boolean {
   return safeQueue(name).equals(Nothing())
 }
@@ -112,6 +116,10 @@ function getNextAction(name: string): Maybe<Object> {
   return safeQueue(name)
     .map(queue => queue.pushQueue)
     .map(head)
+}
+
+function getCursor(name: string): Maybe<number> {
+  return safeQueue(name).map(queue => queue.cursor)
 }
 
 /**
@@ -155,9 +163,11 @@ export default {
   lockQueue,
   unlockQueue,
   setCursor,
+  listQueues,
   hasNoQueue,
   getNextNotification,
   getNextAction,
+  getCursor,
   isPushQueueEmpty,
   isQueueBusy,
   isQueueReady
