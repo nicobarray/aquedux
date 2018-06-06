@@ -11,9 +11,9 @@ import configManager from './managers/configManager'
 
 import actionTypes from './constants/actionTypes'
 import { initRedisConnection } from './redis/connections'
-import * as eventHub from './utils/eventHub'
+import { events, register, unregister, raise } from './utils/eventHub'
 import logger from './utils/logger'
-import actionCreators from './actionCreators'
+import { snapshotChannel } from './actionCreators'
 
 function onSendActionToTank({ tankId, action }) {
   // TODO: is this necessary ?
@@ -32,11 +32,7 @@ function onSendChannelSnapshotToTank({ channelName, subAction, state }) {
   logger.debug({ who: 'server', what: 'send channel snapshot to tank', channelName, subAction })
 
   const channel = channelManager.getChannelHandlersFromName(channelName)
-  const snapshotAction = actionCreators.snapshotChannel(
-    subAction.name,
-    subAction.id,
-    channel.reducer(state, subAction.id)
-  )
+  const snapshotAction = snapshotChannel(subAction.name, subAction.id, channel.reducer(state, subAction.id))
 
   handleSend(tankManager.getTank(subAction.tankId).socket, snapshotAction)
 }
@@ -83,7 +79,7 @@ function handleData(socket: any) {
 
     logger.trace({ type: 'new message', id: socket.id, message })
 
-    eventHub.raise(eventHub.events.EVENT_ACTION_DISPATCH, water)
+    raise(events.EVENT_ACTION_DISPATCH, water)
   }
 }
 
@@ -129,10 +125,9 @@ function createServer(options: any = {}) {
   socketServer.on('connection', handleConnection)
 
   // This event is for sending data to a single tank.
-  eventHub.register(eventHub.EVENT_SEND_ACTION_TO_TANK, onSendActionToTank)
-
+  register(events.EVENT_SEND_ACTION_TO_TANK, onSendActionToTank)
   // This event is for sending channel data to a single tank.
-  eventHub.register(eventHub.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, onSendChannelSnapshotToTank)
+  register(events.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, onSendChannelSnapshotToTank)
 
   return {
     start(httpServer: ?http.Server = null) {
@@ -141,9 +136,21 @@ function createServer(options: any = {}) {
       }
 
       socketServer.installHandlers(httpServer, { prefix: routePrefix + '/aquedux' })
+
       httpServer.listen(port, host)
 
-      return httpServer
+      register(events.EVENT_SERVER_CLOSE, () => {
+        // TODO: clear channel subs.
+        // TODO: unload queues.
+
+        tankManager
+          .listAll()
+          .map(tank => tank.socket)
+          .forEach(handleClose)
+
+        unregister(events.EVENT_SEND_ACTION_TO_TANK, onSendActionToTank)
+        unregister(events.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, onSendChannelSnapshotToTank)
+      })
     }
   }
 }

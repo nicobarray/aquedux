@@ -7,6 +7,7 @@ import requestListener from './requestListener'
 import { privateAnswer } from './utils/actionWrapper'
 // import { subscribeToPrivateChannel } from './network/subscribe'
 import { kickTank } from './managers/tankManager'
+import { close } from './actionCreators'
 
 export {
   createAquedux,
@@ -15,5 +16,6 @@ export {
   // Private API (do not document it)
   privateAnswer,
   // subscribeToPrivateChannel,
-  kickTank
+  kickTank,
+  close
 }

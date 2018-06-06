@@ -4,7 +4,7 @@ import logger from '../utils/logger'
 
 import configManager from '../managers/configManager'
 import queueManager from '../managers/queueManager'
-import actionCreators from '../actionCreators'
+import { snapshotQueue } from '../actionCreators'
 import { asyncQuery } from './connections'
 
 // TODO: Check if this must be used.
@@ -61,7 +61,7 @@ async function asyncSnapshotQueue(name: string, size: number) {
       // TODO: determine the correct use of 'snapshots'
       await connection
         .multi()
-        .set([fragmentSnapName, JSON.stringify(actionCreators.snapshotQueue(name, queueManager.getState(), size))])
+        .set([fragmentSnapName, JSON.stringify(snapshotQueue(name, queueManager.getState(), size))])
         .execAsync()
     } catch (err) {
       logger.warn({
