@@ -1,9 +1,12 @@
+// @flow
+
 import redis from 'redis'
 import bluebird from 'bluebird'
 import omit from 'lodash/omit'
 import { v4 } from 'uuid'
 
 import configManager from '../managers/configManager'
+import queueManager from '../managers/queueManager'
 
 import logger from '../utils/logger'
 
@@ -11,7 +14,7 @@ bluebird.promisifyAll(redis.RedisClient.prototype)
 bluebird.promisifyAll(redis.Multi.prototype)
 
 let connections = {}
-let initial = null
+let initial: any = null
 
 const retry_strategy = options => {
   if (options.attempt > 3) {
@@ -62,7 +65,7 @@ export const initRedisConnection = () => {
   hookOnEvents(initial)
 }
 
-export function UndefinedConnectionException(message) {
+export function UndefinedConnectionException(message: string) {
   this.message = message
   this.name = 'UndefinedConnectionException'
 }
@@ -80,55 +83,39 @@ export const duplicate = () => {
   return id
 }
 
-export const close = (store, id) => {
+export const close = (name: string) => {
+  const id = queueManager.getSubId(name)
   const conn = connections[id]
   if (conn) {
     conn.quit()
     connections = omit(connections, id)
-    logger.debug({
-      who: 'redis-driver',
-      what: 'close connection',
-      id
-    })
   } else {
     throw new UndefinedConnectionException(id)
   }
 }
 
-export const query = callback => {
-  logger.trace({
-    who: 'redis-driver',
-    what: 'querying redis'
-  })
+export const query = (callback: Function) => {
   const conn = initial.duplicate()
   callback(conn, () => conn.quit())
 }
 
-export const asyncQuery = async query => {
-  logger.trace({
-    who: 'redis-driver',
-    what: 'querying redis'
-  })
+export async function asyncQuery(query: any => Promise<void>) {
   try {
     await query(initial)
   } catch (err) {
     logger.error({
-      who: 'redis-driver::asyncQuery',
-      what: 'catch error while querying redis',
+      who: 'redis',
+      what: 'asyncQuery error',
       err
     })
   }
 }
 
-export const get = id => {
+export function get(id: string) {
   const conn = connections[id]
   if (conn) {
     return conn
   } else {
     throw new UndefinedConnectionException(id)
   }
-}
-
-export const getPrimary = () => {
-  return initial
 }

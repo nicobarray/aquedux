@@ -5,7 +5,7 @@ import requestListener from './requestListener'
 
 // Private API
 import { privateAnswer } from './utils/actionWrapper'
-import { subscribeToPrivateChannel } from './network/subscribe'
+// import { subscribeToPrivateChannel } from './network/subscribe'
 import { kickTank } from './managers/tankManager'
 
 export {
@@ -14,6 +14,6 @@ export {
   requestListener,
   // Private API (do not document it)
   privateAnswer,
-  subscribeToPrivateChannel,
+  // subscribeToPrivateChannel,
   kickTank
 }

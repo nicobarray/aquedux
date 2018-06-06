@@ -1,32 +1,28 @@
 // @flow
 
-import handleNotification from './handleNotification'
+import until from '../../utils/until'
 import logger from '../../utils/logger'
-import actions from '../../actions'
-import { selectors } from '../../reducers'
-import { duplicate, get, asyncQuery } from '../connections'
-import until from '../until'
-import getsetLatestFragmentIndexAsync from './getsetLatestFragmentIndexAsync'
+import { raise, events } from '../../utils/eventHub'
 
 import configManager from '../../managers/configManager'
+import queueManager from '../../managers/queueManager'
 
-import type { Store } from '../../constants/types'
+import { duplicate, get, asyncQuery } from '../connections'
+import getsetLatestFragmentIndexAsync from './getsetLatestFragmentIndexAsync'
+import handleMessage from './handleMessage'
 
 // Create a queue, load it from redis (or create it) and
 // register itself to the store. To call only if the queue does not exists
 // yet. Else, you'll have duplicated notifications and invalid state.
-export default async (store: Store, name: string): Promise<void> => {
+async function asyncCreate(name: string): Promise<void> {
   logger.debug({ who: `redis-${name}`, what: 'asyncCreate' })
 
-  if (selectors.queue.hasQueue(store.getState(), name)) {
+  if (queueManager.hasQueue(name)) {
     logger.error({ who: `redis-${name}`, what: 'asyncCreate called more than one time for the same queue!' })
     return
   }
 
-  const { queueLimit } = configManager.getConfig()
   const subId = duplicate()
-  store.dispatch(actions.queue.load(name, subId, 0))
-
   const sub = get(subId)
 
   // Notification setup.
@@ -35,7 +31,8 @@ export default async (store: Store, name: string): Promise<void> => {
     sub.config('SET', 'notify-keyspace-events', 'Klg')
   }
 
-  sub.on('pmessage', handleNotification(store, name))
+  sub.on('pmessage', handleMessage(name))
+
   sub.psubscribe(`__keyspace@*__:${name}-frag-*`, (err, reply) => {
     if (err) {
       logger.warn({
@@ -54,6 +51,11 @@ export default async (store: Store, name: string): Promise<void> => {
 
   logger.debug({ who: `redis-${name}`, what: 'startup' })
 
+  const { queueLimit } = configManager.getConfig()
+
+  queueManager.createQueue(name, subId)
+  queueManager.lockQueue(name)
+
   // Action fetching and queue/fragment in redis initialisation.
   await asyncQuery(async connection => {
     try {
@@ -64,15 +66,16 @@ export default async (store: Store, name: string): Promise<void> => {
       const latestFragmentSnapName = `${name}-snap-${queueLength}`
 
       // Now get the current fragment length to reduce it.
-      let fetchedActions = await connection.lrangeAsync([latestFragmentName, 0, -1])
+      let actionQueue = await connection.lrangeAsync([latestFragmentName, 0, -1])
 
       /*
         Compute the initial cursor. The cursor is the index along the whole queue.
         So if a queue is composed of 3 fragments of 5 elements each and 1 last
-        fragment of 2 element, the initial cursor equals 17. 
+        fragment of 2 element, the initial cursor equals (3x5+2)=17. 
       */
       const fragmentLength = await connection.llenAsync(latestFragmentName)
       const initialCursor = queueLength * queueLimit + parseInt(fragmentLength, 10)
+
       logger.debug({
         who: `redis-${name}`,
         what: 'load latest fragment',
@@ -81,13 +84,13 @@ export default async (store: Store, name: string): Promise<void> => {
         initialCursor,
         queueLimit
       })
-      store.dispatch(actions.queue.setCursor(name, initialCursor))
 
-      let fetchedSnapshot = await connection.getAsync(latestFragmentSnapName)
-      // First reduce the snapshot.
-      if (fetchedSnapshot !== null) {
-        const action = JSON.parse(fetchedSnapshot)
-        store.dispatch({ ...action, meta: { ...action.meta, ignore: true } })
+      queueManager.setCursor(name, initialCursor)
+
+      let snapshot = await connection.getAsync(latestFragmentSnapName)
+
+      if (snapshot) {
+        actionQueue.unshift(snapshot)
       } else {
         logger.info({
           who: `redis-${name}`,
@@ -96,15 +99,13 @@ export default async (store: Store, name: string): Promise<void> => {
       }
 
       // Reduce all actions to local redux state.
-      while (fetchedActions.length > 0) {
-        const [head, ...rest] = fetchedActions
-        fetchedActions = rest
-        const action = JSON.parse(head)
-        store.dispatch({ ...action, meta: { ...action.meta, ignore: true } })
+      while (actionQueue.length > 0) {
+        const action = JSON.parse(actionQueue.shift())
+        raise(events.EVENT_ACTION_DISPATCH, { ...action, meta: { ...action.meta, ignore: true } })
       }
 
-      // At last, the initialisation is finished.
-      store.dispatch(actions.queue.unlock(name))
+      // At last, we unlock the queue to be updated by any incoming action.
+      queueManager.unlockQueue(name)
     } catch (err) {
       logger.warn({
         who: `redis-${name}`,
@@ -116,11 +117,15 @@ export default async (store: Store, name: string): Promise<void> => {
   })
 
   // Just for logging.
-  const duration = await until(() => selectors.queue.isReady(store.getState(), name))
-  const cursor = selectors.queue.getCursor(store.getState(), name)
+  const duration = await until(() => queueManager.isQueueReady(name))
+  const cursor = queueManager.getCursor(name)
   const length = queueLimit === 0 ? cursor : cursor % queueLimit
   logger.debug({
     who: `queue-${name}`,
-    what: `reducing this queue took ${duration} milliseconds for ${length} actions`
+    what: 'reduce queue',
+    duration,
+    length
   })
 }
+
+export default asyncCreate

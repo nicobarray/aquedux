@@ -83,7 +83,7 @@ function handleData(socket: any) {
 
     logger.trace({ type: 'new message', id: socket.id, message })
 
-    eventHub.raise(eventHub.events.EVENT_ACTION_RECEIVED, water)
+    eventHub.raise(eventHub.events.EVENT_ACTION_DISPATCH, water)
   }
 }
 
@@ -124,9 +124,7 @@ function createServer(options: any = {}) {
 
   initRedisConnection()
 
-  const socketServer = sockjs.createServer({
-    sockjs_url: 'http://cdn.jsdelivr.net/sockjs/1.0.1/sockjs.min.js'
-  })
+  const socketServer = sockjs.createServer()
 
   socketServer.on('connection', handleConnection)
 

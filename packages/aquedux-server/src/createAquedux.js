@@ -5,10 +5,8 @@ import { flowRight } from 'lodash'
 import createServer from './createServer'
 import { type AqueduxConfig } from './managers/configManager'
 
-// TODO: Import aquedux-server middlewares here.
 import channelMiddleware from './middlewares/channel'
 import routerMiddleware from './middlewares/router'
-//// import clientMiddleware from './middlewares/client'
 
 function chainMiddleware(...middlewares) {
   return (store: any) => (next: Function) => (action: Object) => {
@@ -17,7 +15,7 @@ function chainMiddleware(...middlewares) {
 }
 
 function createMiddleware() {
-  return chainMiddleware(/*clientMiddleware,*/ routerMiddleware, channelMiddleware)
+  return chainMiddleware(routerMiddleware, channelMiddleware)
 }
 
 export default function createAquedux(options: AqueduxConfig) {

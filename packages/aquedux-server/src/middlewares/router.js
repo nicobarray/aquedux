@@ -43,10 +43,10 @@ async function statefullActionToRedis(store: Store, action: Object) {
 
   const queueName = channelManager.findChannelNameForAction(action)
   if (queueManager.hasNoQueue(queueName)) {
-    await asyncCreate(store, queueName)
+    await asyncCreate(queueName)
   }
 
-  await asyncPush(store, queueName, water)
+  await asyncPush(queueName, water)
 }
 
 function statefullActionFromRedis(store: Store, next: Object => void, action: Object) {

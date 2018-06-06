@@ -1,13 +1,12 @@
 // @flow
 
-import { asyncQuery } from './connections'
-import until from './until'
-import { selectors } from '../reducers'
-import actions from '../actions'
+import until from '../utils/until'
 import logger from '../utils/logger'
 
 import configManager from '../managers/configManager'
-import type { Store } from '../constants/types'
+import queueManager from '../managers/queueManager'
+
+import { asyncQuery } from './connections'
 
 const luaScript = `
   local prefix = ARGV[1]
@@ -28,7 +27,7 @@ const luaScript = `
   end
 `
 
-const asyncPushToRedis = async (store: Store, name: string, action: Object) =>
+const asyncPushToRedis = async (name: string, action: Object) =>
   asyncQuery(async connection => {
     const { queueLimit } = configManager.getConfig()
     try {
@@ -54,34 +53,29 @@ const asyncPushToRedis = async (store: Store, name: string, action: Object) =>
     }
   })
 
-const asyncPush = async (store: Store, name: string, water: Object): Promise<void> => {
-  const innerState = selectors.queue.getInnerState(store.getState(), name)
-
-  if (innerState === 'QUEUE_STATE_PURGED') {
-    logger.debug({ who: `redis-${name}`, what: 'the queue is purged. ignoring action' })
-    return
-  }
-
+const asyncPush = async (name: string, water: Object): Promise<void> => {
   logger.debug({
     who: `redis-${name}`,
     what: 'push action',
     type: water.type
   })
 
-  store.dispatch(actions.queue.enqueueAction(name, water))
+  queueManager.enqueueAction(name, water)
+  await until(() => !queueManager.isQueueBusy(name))
+  queueManager.lockQueue(name)
 
   try {
-    await until(() => !selectors.queue.isQueueBusy(store.getState(), name))
     // Lock the queue to forward all action to redis.
-    store.dispatch(actions.queue.lock(name))
-    while (!selectors.queue.isPushQueueEmpty(store.getState(), name)) {
+    while (!queueManager.isPushQueueEmpty(name)) {
       // Pop the oldest element and process it.
-      const nextAction = selectors.queue.getNextAction(store.getState(), name)
-      store.dispatch(actions.queue.dequeueAction(name))
-      await asyncPushToRedis(store, name, nextAction)
+      // TODO: This should be one operator.
+      const action = queueManager.getNextAction(name)
+      queueManager.dequeueAction(name)
+
+      await asyncPushToRedis(name, action)
     }
     // Unlock queue.
-    store.dispatch(actions.queue.unlock(name))
+    queueManager.unlockQueue(name)
   } catch (err) {
     logger.error({ who: `redis-${name}`, what: 'Error while push an action to redis', err })
   }

@@ -5,6 +5,8 @@ import { createStore } from 'redux'
 import actionTypes from './constants/actionTypes'
 import { register, events } from './utils/eventHub'
 
+import queueManager from './managers/queueManager'
+
 function wrapStoreReducer(userReducers) {
   return (prevState, action) => {
     if (action.type === actionTypes.queue.AQUEDUX_QUEUE_SNAPSHOT) {
@@ -32,7 +34,9 @@ export default function(reducer: Function, preloadedState: any, enhancer: Functi
   const wrappedReducer = wrapStoreReducer(reducer)
   const store = createStore(wrappedReducer, preloadedState, enhancer)
 
-  register(events.EVENT_ACTION_RECEIVED, store.dispatch)
+  register(events.EVENT_ACTION_DISPATCH, store.dispatch)
+
+  queueManager.getState = store.getState
 
   return store
 }

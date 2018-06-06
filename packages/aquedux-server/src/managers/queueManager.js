@@ -41,7 +41,32 @@ type State = {
 
 const state: State = {}
 
+let _getState: ?Function = null
+
+function setGetState(getState: Function): void {
+  _getState = getState
+}
+
+function getState(): Object {
+  if (!_getState) {
+    throw new Error('The getState handler is not defined.')
+  }
+
+  return _getState()
+}
+
 // Actions
+
+function createQueue(name: string, subId: string) {
+  state[name] = {
+    name,
+    cursor: 0,
+    notificationQueue: [],
+    pushQueue: [],
+    innerState: 'QUEUE_STATE_CREATED',
+    subId
+  }
+}
 
 function loadQueue(
   name: string = '',
@@ -70,16 +95,16 @@ function enqueueNotification(name: string) {
   state[name].cursor++
 }
 
-function dequeueNotification(name: string) {
-  state[name].notificationQueue.shift()
+function dequeueNotification(name: string): number {
+  return state[name].notificationQueue.shift()
 }
 
 function enqueueAction(name: string, action: Object) {
   state[name].pushQueue.push(action)
 }
 
-function dequeueAction(name: string) {
-  state[name].pushQueue.shift()
+function dequeueAction(name: string): Object {
+  return state[name].pushQueue.shift()
 }
 
 function lockQueue(name: string) {
@@ -108,6 +133,10 @@ function hasNoQueue(name: string): boolean {
   return safeQueue(name).equals(Nothing())
 }
 
+function hasQueue(name: string): boolean {
+  return !safeQueue(name).equals(Nothing())
+}
+
 function getNextNotification(name: string): Maybe<number> {
   return safeQueue(name).map(queue => queue.notificationQueue)
 }
@@ -120,6 +149,10 @@ function getNextAction(name: string): Maybe<Object> {
 
 function getCursor(name: string): Maybe<number> {
   return safeQueue(name).map(queue => queue.cursor)
+}
+
+function getSubId(name: string): Maybe<string> {
+  return safeQueue(name).map(queue => queue.subId)
 }
 
 /**
@@ -154,6 +187,9 @@ function isQueueReady(name: string): boolean {
 }
 
 export default {
+  setGetState,
+  getState,
+  createQueue,
   loadQueue,
   unloadQueue,
   enqueueNotification,
@@ -164,10 +200,12 @@ export default {
   unlockQueue,
   setCursor,
   listQueues,
+  hasQueue,
   hasNoQueue,
   getNextNotification,
   getNextAction,
   getCursor,
+  getSubId,
   isPushQueueEmpty,
   isQueueBusy,
   isQueueReady

@@ -1,29 +1,19 @@
 // @flow
 
+import logger from '../utils/logger'
+import queueManager from '../managers/queueManager'
 import asyncCreate from './asyncCreate'
 import { asyncQuery } from './connections'
-import { selectors } from '../reducers'
-import logger from '../utils/logger'
 
-import type { Store } from '../constants/types'
-
-export default async (store: Store, pattern: string): Promise<void> => {
+export default async (pattern: string): Promise<void> => {
   return asyncQuery(async connection => {
-    const backId = selectors.queue.getId(store.getState())
     try {
       const keys = await connection.keysAsync(`${pattern}`)
-      logger.debug({
-        who: `redis-${backId}`,
-        what: `asyncFetch: fetched keys for ${pattern}`,
-        keys
-      })
-      await Promise.all(
-        keys.filter(qName => !selectors.queue.hasQueue(store.getState(), qName)).map(qName => asyncCreate(store, qName))
-      )
+      await Promise.all(keys.filter(queueManager.hasNoQueue).map(asyncCreate))
     } catch (err) {
       logger.warn({
-        who: `redis-${backId}`,
-        what: 'asyncFetch: error during asyncQuery',
+        who: `redis`,
+        what: 'asyncFetch error',
         err
       })
     }

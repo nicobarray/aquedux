@@ -3,7 +3,7 @@
 import Maybe from 'crocks'
 
 import type { SubscriptionAction } from '../constants/types'
-import { subActionToChannelName, subActionToTemplateName } from '../network/subscribe'
+import { subActionToChannelName, subActionToTemplateName } from '../channels'
 import configManager from './configManager'
 
 type Action = {
@@ -134,12 +134,9 @@ function createChannelFromTemplate(subAction: SubscriptionAction): Channel {
 
   // Else create the channel from template.
   const templateName = subActionToTemplateName(subAction)
-  const maybeTemplate = safeTemplate(templateName)
-
-  // $FlowFixMe: subAction has id field (checked by subActionToChannelName)
-  const id = (subAction.id: string)
-
-  defineChannel(channelName, maybeTemplate.value().createPredicate(id), maybeTemplate.value().reducer, channelName)
+  safeTemplate(templateName).map(template => {
+    defineChannel(channelName, template.createPredicate(subAction.id), template.reducer, channelName)
+  })
 
   return getChannelHandlersFromName(channelName)
 }
@@ -174,8 +171,8 @@ function findChannelNameForAction(action: Action): string {
   return getChannelHandlersFromAction(action).name
 }
 
-function checkChannelExists(channelName: string): boolean {
-  return !!channelName && state.channels.hasOwnProperty(channelName)
+function hasChannel(channelName: string): boolean {
+  return state.channels.hasOwnProperty(channelName)
 }
 
 function listChannelName() {
@@ -207,7 +204,7 @@ export default {
   getChannelHandlersFromAction,
   getChannelHandlersFromName,
   findChannelNameForAction,
-  checkChannelExists,
+  hasChannel,
 
   listChannelName,
   listChannels,

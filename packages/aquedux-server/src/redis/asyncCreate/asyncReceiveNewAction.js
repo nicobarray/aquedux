@@ -1,34 +1,32 @@
 // @flow
 
-import { asyncQuery } from '../connections'
 import logger from '../../utils/logger'
-import { selectors } from '../../reducers'
-import actions from '../../actions'
-import type { Store } from '../../constants/types'
-import asyncSnapshotQueue from '../asyncSnapshotQueue'
+import { raise, events } from '../../utils/eventHub'
 
 import configManager from '../../managers/configManager'
+import queueManager from '../../managers/queueManager'
 
-const asyncReceiveNewAction = async (store: Store, name: string) =>
-  asyncQuery(async connection => {
+import { asyncQuery } from '../connections'
+import asyncSnapshotQueue from '../asyncSnapshotQueue'
+
+async function asyncReceiveNewAction(name: string) {
+  return asyncQuery(async connection => {
     logger.debug({
       who: `redis-${name}`,
-      what: 'keyspace notification: pop oldest index, fetch the action and dispatch it',
-      order: selectors.queue.getNotificationQueue(store.getState(), name)
+      what: 'keyspace notification: pop oldest index, fetch the action and dispatch it'
     })
 
     const { queueLimit } = configManager.getConfig()
-    const actionIndex = selectors.queue.getNextNotification(store.getState(), name)
-    store.dispatch(actions.queue.dequeueNotification(name))
+    const actionIndex = queueManager.dequeueNotification(name)
 
-    let res = ''
     const prevFragmentIndex = actionIndex === 0 || queueLimit === 0 ? 0 : Math.floor((actionIndex - 1) / queueLimit)
     const fragmentIndex = actionIndex === 0 || queueLimit === 0 ? 0 : Math.floor(actionIndex / queueLimit)
     const fragmentName = `${name}-frag-${fragmentIndex}`
     const fragmentActionIndex = queueLimit === 0 ? actionIndex : actionIndex % queueLimit
+
     try {
-      res = await connection.lindexAsync([fragmentName, fragmentActionIndex])
-      const action = JSON.parse(res)
+      const json = await connection.lindexAsync([fragmentName, fragmentActionIndex])
+      const action = JSON.parse(json)
 
       logger.debug({
         who: 'asyncReceiveNewAction',
@@ -37,28 +35,25 @@ const asyncReceiveNewAction = async (store: Store, name: string) =>
         fragmentActionIndex,
         actionIndex,
         type: action.type,
-        res
+        json
       })
-      store.dispatch(action)
+
+      raise(events.EVENT_ACTION_DISPATCH, action)
 
       if (prevFragmentIndex !== fragmentIndex) {
         logger.debug({
-          who: `redis-${name}`,
-          what: 'Snapshot start.',
+          who: `queue-${name}`,
+          what: 'Snapshot queue',
           fragmentIndex
         })
-        await asyncSnapshotQueue(store, name, actionIndex)
-        logger.debug({
-          who: `redis-${name}`,
-          what: 'Snapshot step finished.'
-        })
+
+        await asyncSnapshotQueue(name, actionIndex)
       }
     } catch (err) {
       logger.fatal({
         who: `redis-${name}`,
         what: 'asyncReceiveNewAction error',
         err,
-        res,
         actionIndex,
         queueLimit,
         fragmentIndex,
@@ -67,5 +62,6 @@ const asyncReceiveNewAction = async (store: Store, name: string) =>
       })
     }
   })
+}
 
 export default asyncReceiveNewAction
