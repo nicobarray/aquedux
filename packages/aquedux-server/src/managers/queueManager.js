@@ -1,9 +1,9 @@
 // @flow
 
 import { head } from 'lodash'
-import Maybe from 'crocks'
+import { Maybe } from 'crocks'
 
-const { Nothing } = Maybe
+const { Just, Nothing } = Maybe
 
 type QueueInnerStateType =
   // This is the queue state on the queue creation before it had time to start loading the redis content into memory.
@@ -39,7 +39,7 @@ type State = {
   [string]: QueueState
 }
 
-const state: State = {}
+let state: State = {}
 
 let _getState: ?Function = null
 
@@ -119,10 +119,14 @@ function setCursor(name: string, cursor: number) {
   state[name].cursor = cursor
 }
 
+function clear(): void {
+  state = {}
+}
+
 // Selectors
 
 function safeQueue(name: string): Maybe {
-  return state.hasOwnProperty(name) ? Maybe.Just(state[name]) : Maybe.Nothing()
+  return state.hasOwnProperty(name) ? Just(state[name]) : Nothing()
 }
 
 function listQueues(): Array<QueueState> {
@@ -176,13 +180,23 @@ function isQueueBusy(name: string): boolean {
 }
 
 /**
- * An non-existing queue is an available queue.
+ * An non-existing queue is an non-available queue.
  * The queue is ready here if it is created and loaded.
  * @param name Queue name
  */
 function isQueueReady(name: string): boolean {
   return safeQueue(name)
     .map(queue => queue.innerState === 'QUEUE_STATE_AVAILABLE' || queue.innerState === 'QUEUE_STATE_BUSY')
+    .option(false)
+}
+
+/**
+ * An non-existing queue is an non-available queue.
+ * @param name Queue name
+ */
+function isQueueAvailable(name: string): boolean {
+  return safeQueue(name)
+    .map(queue => queue.innerState === 'QUEUE_STATE_AVAILABLE')
     .option(false)
 }
 
@@ -199,6 +213,7 @@ export default {
   lockQueue,
   unlockQueue,
   setCursor,
+  clear,
   listQueues,
   hasQueue,
   hasNoQueue,
@@ -208,5 +223,6 @@ export default {
   getSubId,
   isPushQueueEmpty,
   isQueueBusy,
+  isQueueAvailable,
   isQueueReady
 }

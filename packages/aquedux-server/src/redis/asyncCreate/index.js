@@ -67,13 +67,14 @@ async function asyncCreate(name: string): Promise<void> {
 
       // Now get the current fragment length to reduce it.
       let actionQueue = await connection.lrangeAsync([latestFragmentName, 0, -1])
-
+      console.log('load queue', actionQueue, latestFragmentName)
       /*
         Compute the initial cursor. The cursor is the index along the whole queue.
         So if a queue is composed of 3 fragments of 5 elements each and 1 last
         fragment of 2 element, the initial cursor equals (3x5+2)=17. 
       */
       const fragmentLength = await connection.llenAsync(latestFragmentName)
+
       const initialCursor = queueLength * queueLimit + parseInt(fragmentLength, 10)
 
       logger.debug({
@@ -118,13 +119,18 @@ async function asyncCreate(name: string): Promise<void> {
 
   // Just for logging.
   const duration = await until(() => queueManager.isQueueReady(name))
-  const cursor = queueManager.getCursor(name)
-  const length = queueLimit === 0 ? cursor : cursor % queueLimit
+  const info = queueManager
+    .getCursor(name)
+    .map(cursor => (queueLimit === 0 ? cursor : cursor % queueLimit))
+    .map(length => {
+      length, duration
+    })
+    .option({})
+
   logger.debug({
     who: `queue-${name}`,
     what: 'reduce queue',
-    duration,
-    length
+    ...info
   })
 }
 

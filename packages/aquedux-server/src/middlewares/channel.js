@@ -8,7 +8,7 @@ export default (store: Store) => (next: Function) => (action: Object) => {
   const { type } = action
 
   if (type === actionTypes.client.AQUEDUX_CLIENT_CHANNEL_JOIN) {
-    subscribe(action, store.getState())
+    subscribe(store.getState(), action)
   } else if (type === actionTypes.client.AQUEDUX_CLIENT_CHANNEL_LEAVE) {
     unsubscribe(action)
   } else {

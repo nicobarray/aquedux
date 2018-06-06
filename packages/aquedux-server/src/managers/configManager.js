@@ -12,31 +12,35 @@ import channelManager from './channelManager'
 //   template: boolean
 // }
 
-let config = {
-  queueLimit: 0,
-  hydratedActionTypes: [],
-  logLevel: process.env.AQUEDUX_LOG_LEVEL || 'info',
-  routePrefix: '',
-  /**
-   * A new JWT secret is generated at each start, if missing.
-   * User should override it with a contant one
-   * if he needs to persist some JWT token uppon server restart
-   * or client reconnection on a different server
-   */
-  secret: null,
-  host: '0.0.0.0',
-  port: 4242,
-  channels: [],
-  templates: [],
-  redisHost: process.env.DB_PORT_6379_TCP_ADDR || '127.0.0.1', // Default redis env var
-  redisPort: process.env.DB_PORT_6379_TCP_PORT || '6379', // Default redis env var
+function init() {
+  return {
+    queueLimit: 0,
+    hydratedActionTypes: [],
+    logLevel: process.env.AQUEDUX_LOG_LEVEL || 'info',
+    routePrefix: '',
+    /**
+     * A new JWT secret is generated at each start, if missing.
+     * User should override it with a contant one
+     * if he needs to persist some JWT token uppon server restart
+     * or client reconnection on a different server
+     */
+    secret: null,
+    host: '0.0.0.0',
+    port: 4242,
+    channels: [],
+    templates: [],
+    redisHost: process.env.DB_PORT_6379_TCP_ADDR || '127.0.0.1', // Default redis env var
+    redisPort: process.env.DB_PORT_6379_TCP_PORT || '6379', // Default redis env var
 
-  doFragmentSnapshot: (prevState: any): any => prevState,
+    doFragmentSnapshot: (prevState: any): any => prevState,
 
-  onConnection: (_socket: any) => {},
-  onClose: (_socket: any) => {},
-  serverId: uuid.v4()
+    onConnection: (_socket: any) => {},
+    onClose: (_socket: any) => {},
+    serverId: uuid.v4()
+  }
 }
+
+let config = init()
 
 export type AqueduxConfig = typeof config
 
@@ -100,7 +104,12 @@ const setConfig = (newConfig: any): AqueduxConfig => {
 
 const getConfig = (): AqueduxConfig => config
 
+const clear = () => {
+  config = init()
+}
+
 export default {
   getConfig,
-  setConfig
+  setConfig,
+  clear
 }

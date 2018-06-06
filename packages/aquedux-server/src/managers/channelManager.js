@@ -1,6 +1,6 @@
 // @flow
 
-import Maybe from 'crocks'
+import { Maybe } from 'crocks'
 
 import type { SubscriptionAction } from '../constants/types'
 import { subActionToChannelName, subActionToTemplateName } from '../channels'
@@ -77,8 +77,8 @@ function addDefaultChannel(name: string): void {
   defineChannel(
     name,
     action => configManager.getConfig().hydratedActionTypes.indexOf(action.type) !== -1,
-    (getState, _action) => {
-      return getState()[name]
+    (state, _action) => {
+      return state[name]
     },
     name
   )
@@ -93,7 +93,7 @@ function all(array, fn) {
 }
 
 function isValidChannel(channel: Channel): boolean {
-  return all(['name', 'predicate', 'reducer'], channel.hasOwnProperty)
+  return all(['name', 'predicate', 'reducer'], channel.hasOwnProperty.bind(channel))
 }
 
 function defineTemplate(
@@ -139,6 +139,11 @@ function createChannelFromTemplate(subAction: SubscriptionAction): Channel {
   })
 
   return getChannelHandlersFromName(channelName)
+}
+
+function clear(): void {
+  state.channels = {}
+  state.templates = {}
 }
 
 // Selectors
@@ -200,6 +205,7 @@ export default {
   isValidTemplate,
 
   createChannelFromTemplate,
+  clear,
 
   getChannelHandlersFromAction,
   getChannelHandlersFromName,

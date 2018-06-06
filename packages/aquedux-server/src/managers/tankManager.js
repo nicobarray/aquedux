@@ -8,11 +8,11 @@ export type Tank = {|
   id: string
 |}
 
-type InternalState = {
+type State = {
   [string]: Tank
 }
 
-let state: InternalState = {}
+let state: State = {}
 
 function addTank(tankId: string, socket: Connection): void {
   if (state.hasOwnProperty(tankId)) {
@@ -37,6 +37,10 @@ function removeTank(tankId: string, kick: boolean = false): void {
   }
 
   delete state[tankId]
+}
+
+function clear(): void {
+  state = {}
 }
 
 function getTank(tankId: string): Tank {
@@ -78,6 +82,7 @@ function unsubscribe(tankId: string, channelName: string): void {
 export default {
   addTank,
   removeTank,
+  clear,
   getTank,
   listAll,
   subscribe,

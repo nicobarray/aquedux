@@ -104,6 +104,7 @@ export default (store: Store) => (next: Function) => (action: Object) => {
   if (!tankId) {
     // Local action, skip the router.
     next(action)
+    return
   }
 
   if (isStateless || isPrivate) {
