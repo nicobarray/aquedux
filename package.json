@@ -52,10 +52,5 @@
       "babel-plugin-transform-flow-strip-types",
       "syntax-flow"
     ]
-  },
-   "jest": {
-     "modulePathIgnorePatterns": [
-       "<rootDir>/examples/"
-     ]
-   }
+  }
 }
