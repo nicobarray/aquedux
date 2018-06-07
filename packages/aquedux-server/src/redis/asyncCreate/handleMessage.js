@@ -12,6 +12,11 @@ function handleMessage(name: string) {
       return
     }
 
+    if (queueManager.hasNoQueue(name)) {
+      console.log(`Receive notif for queue ${name}`)
+      return
+    }
+
     queueManager.enqueueNotification(name)
 
     asyncReceiveNewAction(name)

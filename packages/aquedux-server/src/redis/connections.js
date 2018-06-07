@@ -84,14 +84,26 @@ export const duplicate = () => {
 }
 
 export const close = (name: string) => {
-  const id = queueManager.getSubId(name)
-  const conn = connections[id]
-  if (conn) {
-    conn.quit()
-    connections = omit(connections, id)
-  } else {
-    throw new UndefinedConnectionException(id)
+  console.log('all queues', queueManager.listQueues())
+
+  if (queueManager.hasNoQueue(name)) {
+    throw new Error(`Channel do not exists ${name}`)
   }
+
+  const maybeId = queueManager.getSubId(name).option(null)
+
+  if (!maybeId) {
+    throw new Error('Channel do not exists')
+  }
+
+  const conn = connections[maybeId]
+
+  if (!conn) {
+    throw new Error('Conn do not exists')
+  }
+
+  conn.quit()
+  connections = omit(connections, maybeId)
 }
 
 export const query = (callback: Function) => {

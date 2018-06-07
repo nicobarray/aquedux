@@ -1,5 +1,6 @@
 // @flow
 
+import { flatten } from 'lodash/fp'
 import type { Connection } from 'sockjs'
 
 export type Tank = {|
@@ -55,6 +56,13 @@ function listAll(): Array<Tank> {
   return Object.keys(state).map(key => state[key])
 }
 
+function hasSubscribersTo(channelName: string): boolean {
+  return !!listAll()
+    .map(tank => tank.channels)
+    .map(flatten)
+    .find(name => name === channelName)
+}
+
 function subscribe(tankId: string, channelName: string): void {
   if (!state.hasOwnProperty(tankId)) {
     throw new Error(`Tank ${tankId} does not exists. Did you forgot to call tankManager.addTank ?`)
@@ -69,10 +77,10 @@ function subscribe(tankId: string, channelName: string): void {
 
 function unsubscribe(tankId: string, channelName: string): void {
   if (!state.hasOwnProperty(tankId)) {
-    throw new Error(`Tank ${tankId} does not exists. Did you forgot to call tankManager.addTank ?`)
+    throw new Error(`Tank ${tankId} does not exists.`)
   }
 
-  if (state[tankId].channels.indexOf(channelName) !== -1) {
+  if (!state[tankId].channels.find(name => name === channelName)) {
     throw new Error(`Tank ${tankId} is not subscribe to ${channelName}.`)
   }
 
@@ -85,6 +93,7 @@ export default {
   clear,
   getTank,
   listAll,
+  hasSubscribersTo,
   subscribe,
   unsubscribe
 }

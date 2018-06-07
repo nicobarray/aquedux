@@ -97,7 +97,7 @@ function statefullActionFromRedis(store: Store, next: Object => void, action: Ob
 export default (store: Store) => (next: Function) => (action: Object) => {
   const { type, tankId } = action
   const { hydratedActionTypes } = configManager.getConfig()
-  const isStateless = hydratedActionTypes.indexOf(type) === -1
+  const isStateless = !hydratedActionTypes.find(t => t === type)
   const isPrivate = action.meta && action.meta.private
   const isFresh = !action.origin
 

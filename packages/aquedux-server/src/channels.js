@@ -7,6 +7,7 @@ import queueManager from './managers/queueManager'
 import tankManager from './managers/tankManager'
 
 import asyncCreate from './redis/asyncCreate'
+import closeQueue from './redis/closeQueue'
 
 import { raise, events } from './utils/eventHub'
 import logger from './utils/logger'
@@ -93,6 +94,7 @@ export function unsubscribe(subAction: SubscriptionAction): void {
 
   tankManager.unsubscribe(subAction.tankId, channelName)
 
-  // TODO: Here unload queues that no one listen to.
-  // e.g await asyncUnload(store, queueName)
+  if (!tankManager.hasSubscribersTo(channelName)) {
+    closeQueue(channelName)
+  }
 }

@@ -10,5 +10,7 @@ export default (name: string) => {
     what: 'closing queue'
   })
 
-  close(queueManager.getSubId(name))
+  close(name)
+
+  queueManager.unloadQueue(name)
 }
