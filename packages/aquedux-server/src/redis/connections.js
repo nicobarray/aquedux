@@ -9,6 +9,7 @@ import configManager from '../managers/configManager'
 import queueManager from '../managers/queueManager'
 
 import logger from '../utils/logger'
+import { register, unregister, events } from '../utils/eventHub'
 
 bluebird.promisifyAll(redis.RedisClient.prototype)
 bluebird.promisifyAll(redis.Multi.prototype)
@@ -29,18 +30,21 @@ const hookOnEvents = connection => {
   connection.on('error', err => {
     logger.error({ who: 'redis-driver', err })
   })
+
   connection.on('reconnecting', ({ delay, attempt }) =>
     logger.warn({
       who: 'redis-driver',
       what: `attempting reconnection (${attempt}) with delay ${delay}ms`
     })
   )
+
   connection.on('connect', () => {
     logger.debug({
       who: 'redis-driver',
       what: 'Connected to Redis successfuly'
     })
   })
+
   connection.on('ready', () => {
     logger.debug({
       who: 'redis-driver',
@@ -63,18 +67,31 @@ export const initRedisConnection = () => {
   })
 
   hookOnEvents(initial)
-}
 
-export function UndefinedConnectionException(message: string) {
-  this.message = message
-  this.name = 'UndefinedConnectionException'
+  const onServerClose = () => {
+    if (initial) {
+      initial.quit()
+      initial = null
+    }
+
+    Object.keys(connections).forEach(id => {
+      const conn = connections[id]
+      conn.quit()
+    })
+
+    connections = {}
+
+    unregister(events.EVENT_SERVER_CLOSE, onServerClose)
+  }
+
+  register(events.EVENT_SERVER_CLOSE, onServerClose)
 }
 
 export const duplicate = () => {
-  const next = initial.duplicate()
-  hookOnEvents(next)
+  const conn = initial.duplicate()
+  hookOnEvents(conn)
   const id = v4()
-  connections = { ...connections, [id]: next }
+  connections = { ...connections, [id]: conn }
   logger.debug({
     who: 'redis-driver',
     what: 'duplicate connection',
@@ -84,26 +101,16 @@ export const duplicate = () => {
 }
 
 export const close = (name: string) => {
-  console.log('all queues', queueManager.listQueues())
+  const id = queueManager.getSubId(name).option(null)
 
-  if (queueManager.hasNoQueue(name)) {
-    throw new Error(`Channel do not exists ${name}`)
+  if (!id) {
+    throw new Error(`Channel ${name} do not exists`)
   }
 
-  const maybeId = queueManager.getSubId(name).option(null)
-
-  if (!maybeId) {
-    throw new Error('Channel do not exists')
-  }
-
-  const conn = connections[maybeId]
-
-  if (!conn) {
-    throw new Error('Conn do not exists')
-  }
+  const conn = connections[id]
 
   conn.quit()
-  connections = omit(connections, maybeId)
+  connections = omit(connections, id)
 }
 
 export const query = (callback: Function) => {
@@ -128,6 +135,6 @@ export function get(id: string) {
   if (conn) {
     return conn
   } else {
-    throw new UndefinedConnectionException(id)
+    throw new Error(`The redis connection ${id} does not exists`)
   }
 }

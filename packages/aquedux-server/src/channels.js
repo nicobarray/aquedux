@@ -44,9 +44,11 @@ export const subActionToTemplateName = (subAction: SubscriptionAction): string =
 
 export function subActionToChannelName(subAction: SubscriptionAction): string {
   const channelPrefix = subAction.name
+
   if (subAction.id) {
     return `${channelPrefix}-${subAction.id}`
   }
+
   return channelPrefix
 }
 
@@ -80,7 +82,7 @@ export async function subscribe(state: Object, subAction: SubscriptionAction): P
 
   logger.debug({ who: 'aquedux-server', what: 'send snapshot', channelName })
 
-  tankManager.subscribe(subAction.tankId, channelName)
+  tankManager.subscribe(subAction.meta.tankId, channelName)
 
   raise(events.EVENT_SEND_CHANNEL_SNAPSHOT_TO_TANK, {
     channelName,
@@ -92,7 +94,7 @@ export async function subscribe(state: Object, subAction: SubscriptionAction): P
 export function unsubscribe(subAction: SubscriptionAction): void {
   const channelName = subActionToChannelName(subAction)
 
-  tankManager.unsubscribe(subAction.tankId, channelName)
+  tankManager.unsubscribe(subAction.meta.tankId, channelName)
 
   if (!tankManager.hasSubscribersTo(channelName)) {
     closeQueue(channelName)

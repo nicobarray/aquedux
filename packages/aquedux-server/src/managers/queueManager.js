@@ -120,7 +120,9 @@ function setCursor(name: string, cursor: number) {
 }
 
 function clear(): void {
-  state = {}
+  listQueues().forEach(queue => {
+    unloadQueue(queue.name)
+  })
 }
 
 // Selectors

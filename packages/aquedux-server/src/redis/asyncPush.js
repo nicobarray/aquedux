@@ -53,14 +53,14 @@ const asyncPushToRedis = async (name: string, action: Object) =>
     }
   })
 
-const asyncPush = async (name: string, water: Object): Promise<void> => {
+const asyncPush = async (name: string, action: Object): Promise<void> => {
   logger.debug({
     who: `redis-${name}`,
     what: 'push action',
-    type: water.type
+    type: action.type
   })
 
-  queueManager.enqueueAction(name, water)
+  queueManager.enqueueAction(name, action)
   await until(() => !queueManager.isQueueBusy(name))
   queueManager.lockQueue(name)
 
@@ -68,12 +68,16 @@ const asyncPush = async (name: string, water: Object): Promise<void> => {
     // Lock the queue to forward all action to redis.
     while (!queueManager.isPushQueueEmpty(name)) {
       // Pop the oldest element and process it.
-      // TODO: This should be one operator.
-      const action = queueManager.getNextAction(name)
-      queueManager.dequeueAction(name)
+      const water = queueManager.getNextAction(name).option(null)
 
-      await asyncPushToRedis(name, action)
+      if (water) {
+        queueManager.dequeueAction(name)
+        await asyncPushToRedis(name, water)
+      } else {
+        logger.warn('No action found to push to redis when we should')
+      }
     }
+
     // Unlock queue.
     queueManager.unlockQueue(name)
   } catch (err) {

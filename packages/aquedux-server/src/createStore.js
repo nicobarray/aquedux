@@ -3,7 +3,7 @@
 import { createStore } from 'redux'
 
 import actionTypes from './constants/actionTypes'
-import { register, events } from './utils/eventHub'
+import { register, unregister, events } from './utils/eventHub'
 
 import queueManager from './managers/queueManager'
 
@@ -34,7 +34,13 @@ export default function(reducer: Function, preloadedState: any, enhancer: Functi
   const wrappedReducer = wrapStoreReducer(reducer)
   const store = createStore(wrappedReducer, preloadedState, enhancer)
 
+  const onServerClose = () => {
+    unregister(events.EVENT_ACTION_DISPATCH, store.dispatch)
+    unregister(events.EVENT_SERVER_CLOSE, onServerClose)
+  }
+
   register(events.EVENT_ACTION_DISPATCH, store.dispatch)
+  register(events.EVENT_SERVER_CLOSE, onServerClose)
 
   queueManager.getState = store.getState
 

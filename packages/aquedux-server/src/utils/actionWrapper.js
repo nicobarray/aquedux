@@ -9,9 +9,9 @@ export const privateAnswer = (tankId: string, action: Object): Object => {
 
   return {
     ...omit(action, ['token', 'tankId']),
-    origin: `${serverId}:${tankId}`,
     meta: {
-      private: true
+      private: true,
+      origin: `${serverId}:${tankId}`
     }
   }
 }

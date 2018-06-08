@@ -34,7 +34,7 @@ function onSendChannelSnapshotToTank({ channelName, subAction, state }) {
   const channel = channelManager.getChannelHandlersFromName(channelName)
   const snapshotAction = snapshotChannel(subAction.name, subAction.id, channel.reducer(state, subAction.id))
 
-  handleSend(tankManager.getTank(subAction.tankId).socket, snapshotAction)
+  handleSend(tankManager.getTank(subAction.meta.tankId).socket, snapshotAction)
 }
 
 function handleSend(socket: any, action: Object) {
@@ -44,7 +44,7 @@ function handleSend(socket: any, action: Object) {
   const meta = action.meta ? omit(action.meta, ['private']) : {}
 
   const water = {
-    ...omit(action, ['meta', 'tankId', 'origin']),
+    ...omit(action, ['meta']),
     token: jwt.sign(meta, secret)
   }
 
@@ -60,7 +60,7 @@ function handleData(socket: any) {
       return
     }
 
-    const { secret } = configManager.getConfig()
+    const { secret, serverId } = configManager.getConfig()
     let meta = {}
 
     if (action.token) {
@@ -73,8 +73,11 @@ function handleData(socket: any) {
 
     const water = {
       ...omit(action, ['token']),
-      tankId: socket.id,
-      meta
+      meta: {
+        ...meta,
+        tankId: socket.id,
+        serverId
+      }
     }
 
     logger.trace({ type: 'new message', id: socket.id, message })
@@ -140,9 +143,6 @@ function createServer(options: any = {}) {
       httpServer.listen(port, host)
 
       register(events.EVENT_SERVER_CLOSE, () => {
-        // TODO: clear channel subs.
-        // TODO: unload queues.
-
         tankManager
           .listAll()
           .map(tank => tank.socket)

@@ -36,11 +36,16 @@ export type QueueState = {
 
 export type Action = {
   type: string,
-  [string]: ?any,
-  tankId: string
+  meta: {
+    tankId: string,
+    serverId?: string,
+    saved?: boolean,
+    ignore?: boolean,
+    private?: boolean
+  }
 }
 
-export type SubscriptionAction = { type: string, tankId: string, name: string, id: ?string }
+export type SubscriptionAction = Action & { name: string, id: ?string }
 
 export type AqueduxAction =
   | { type: AqueduxActionType, name: string }

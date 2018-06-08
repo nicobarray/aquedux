@@ -7,7 +7,7 @@ import bluebird from 'bluebird'
 bluebird.promisifyAll(redis.RedisClient.prototype)
 bluebird.promisifyAll(redis.Multi.prototype)
 
-import { until, once } from './utils'
+import { until, once, fakeUserAction } from './utils'
 
 // Public api
 import { createAquedux, createStore, close } from '../src'
@@ -51,7 +51,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   if (store) {
-    store.dispatch(close())
+    store.dispatch(fakeUserAction(close(), '1234', '42'))
   }
 
   if (httpServer) {
@@ -75,24 +75,25 @@ afterAll(async () => {
 describe('public api', () => {
   it('should instantiate a working middleware', () => {
     const testMiddleware = _store => next => action => {
-      once(() => expect(action.type).toBe('inc'))
+      once(() => expect(action.type).toBe('test'))
       next(action)
-      once(() => expect(action.type).toBe('inc'))
+      once(() => expect(action.type).toBe('test'))
     }
 
     aquedux = createAquedux({
       port: nextPort()
     })
+
     store = createStore(counterReducer, applyMiddleware(aquedux, testMiddleware))
 
-    store.dispatch({ type: 'inc' })
+    store.dispatch({ type: 'test' })
   })
 
   it('should instantiate a working middleware with an external httpServer', () => {
     const testMiddleware = _store => next => action => {
-      once(() => expect(action.type).toBe('inc'))
+      once(() => expect(action.type).toBe('test'))
       next(action)
-      once(() => expect(action.type).toBe('inc'))
+      once(() => expect(action.type).toBe('test'))
     }
 
     httpServer = http.createServer()
@@ -104,7 +105,7 @@ describe('public api', () => {
     )
     store = createStore(counterReducer, applyMiddleware(aquedux, testMiddleware))
 
-    store.dispatch({ type: 'inc' })
+    store.dispatch({ type: 'test' })
   })
 })
 
@@ -124,17 +125,23 @@ describe('channel', () => {
     /**
      * The test setup.
      *
+     * Create a fake connected user.
      * Populate a redis database with a fake queue.
      * Create the aquedux server middleware with a counter channel.
      * Create the redux store.
-     * Create a fake connected user.
      */
 
-    const inc = JSON.stringify({ type: 'counter/inc' })
+    // Add fake connected user.
+    const tankId = '1234'
+    const socket = { write: jest.fn() }
+    tankManager.addTank(tankId, socket)
+
+    const inc = JSON.stringify(fakeUserAction({ type: 'counter/inc', meta: { saved: true } }, tankId, '42'))
     await redisClient.rpushAsync(['counter-frag-0', inc, inc])
 
     aquedux = createAquedux({
       port: nextPort(),
+      serverId: '42',
       channels: [
         {
           name: 'counter',
@@ -158,21 +165,21 @@ describe('channel', () => {
 
     store = createStore(counterReducer, applyMiddleware(testMiddleware, aquedux))
 
-    // Add fake connected user.
-    const tankId = 'fake-tank'
-    const socket = { write: jest.fn() }
-    tankManager.addTank(tankId, socket)
-
     /**
      * The test.
      *
      * Fake a user subscription.
      */
-    store.dispatch({
-      type: 'AQUEDUX_CLIENT_CHANNEL_JOIN',
-      name: 'counter',
-      tankId
-    })
+    store.dispatch(
+      fakeUserAction(
+        {
+          type: 'AQUEDUX_CLIENT_CHANNEL_JOIN',
+          name: 'counter'
+        },
+        tankId,
+        '42'
+      )
+    )
 
     /**
      * The test asserts.
@@ -198,17 +205,23 @@ describe('channel', () => {
     /**
      * The test setup.
      *
+     * Create a fake connected user.
      * Populate a redis database with a fake queue.
      * Create the aquedux server middleware with a counter channel.
      * Create the redux store.
-     * Create a fake connected user.
      */
 
-    const inc = JSON.stringify({ type: 'counter/inc' })
+    // Add fake connected user.
+    const tankId = '1234'
+    const socket = { write: jest.fn() }
+    tankManager.addTank(tankId, socket)
+
+    const inc = JSON.stringify(fakeUserAction({ type: 'counter/inc', meta: { saved: true } }, tankId, '42'))
     await redisClient.rpushAsync(['counter-frag-0', inc, inc])
 
     aquedux = createAquedux({
       port: nextPort(),
+      serverId: '42',
       channels: [
         {
           name: 'counter',
@@ -220,11 +233,6 @@ describe('channel', () => {
 
     store = createStore(counterReducer, applyMiddleware(aquedux))
 
-    // Add fake connected user.
-    const tankId = 'fake-tank'
-    const socket = { write: jest.fn() }
-    tankManager.addTank(tankId, socket)
-
     /**
      * The test.
      *
@@ -232,11 +240,16 @@ describe('channel', () => {
      * Wait for the queue to be ready.
      * Fake a user unsubscription.
      */
-    store.dispatch({
-      type: 'AQUEDUX_CLIENT_CHANNEL_JOIN',
-      name: 'counter',
-      tankId
-    })
+    store.dispatch(
+      fakeUserAction(
+        {
+          type: 'AQUEDUX_CLIENT_CHANNEL_JOIN',
+          name: 'counter'
+        },
+        tankId,
+        '42'
+      )
+    )
 
     // Wait for the queue to be available.
     await (async () => {
@@ -247,11 +260,16 @@ describe('channel', () => {
     expect(tankManager.getTank(tankId).channels.find(name => name === 'counter')).toBeDefined()
     expect(queueManager.hasQueue('counter')).toBeTruthy()
 
-    store.dispatch({
-      type: 'AQUEDUX_CLIENT_CHANNEL_LEAVE',
-      name: 'counter',
-      tankId
-    })
+    store.dispatch(
+      fakeUserAction(
+        {
+          type: 'AQUEDUX_CLIENT_CHANNEL_LEAVE',
+          name: 'counter'
+        },
+        tankId,
+        '42'
+      )
+    )
 
     await (async () => {
       const inTime = await until(() => queueManager.hasNoQueue('counter'))
@@ -262,6 +280,94 @@ describe('channel', () => {
     expect(queueManager.hasNoQueue('counter')).toBeTruthy()
   })
 
+  it('ONLYshould receive a channel action', async () => {
+    /**
+     * The test setup.
+     *
+     * Populate a redis database with a fake queue.
+     * Create the aquedux server middleware with a counter channel.
+     * Create the redux store.
+     * Create a fake connected user.
+     */
+
+    // Add fake connected user.
+    const tankId = '1234'
+    const socket = { write: jest.fn() }
+    tankManager.addTank(tankId, socket)
+
+    const inc = JSON.stringify(fakeUserAction({ type: 'counter/inc', meta: { saved: true } }, tankId, '42'))
+    await redisClient.rpushAsync(['counter-frag-0', inc, inc])
+
+    aquedux = createAquedux({
+      hydratedActionTypes: ['counter/inc', 'counter/dec'],
+      port: nextPort(),
+      serverId: '42',
+      logLevel: 'debug',
+      channels: [
+        {
+          name: 'counter',
+          predicate: ({ type }) => type === 'counter/inc' || type === 'counter/dec',
+          reducer: (state, _action) => state
+        }
+      ]
+    })
+
+    store = createStore(counterReducer, applyMiddleware(aquedux))
+
+    /**
+     * The test.
+     *
+     * Fake a user subscription.
+     * Wait for the queue to be ready.
+     * Fake a user unsubscription.
+     */
+    store.dispatch(
+      fakeUserAction(
+        {
+          type: 'AQUEDUX_CLIENT_CHANNEL_JOIN',
+          name: 'counter'
+        },
+        tankId,
+        '42'
+      )
+    )
+
+    // Wait for the queue to be available.
+    await (async () => {
+      const inTime = await until(() => queueManager.isQueueAvailable('counter'))
+      expect(inTime).toBeTruthy()
+    })()
+
+    expect(
+      queueManager
+        .getCursor('counter')
+        .map(c => c === 2)
+        .option(false)
+    ).toBeTruthy()
+
+    store.dispatch(
+      fakeUserAction(
+        {
+          type: 'counter/dec'
+        },
+        tankId,
+        '42'
+      )
+    )
+
+    await (async () => {
+      const inTime = await until(() =>
+        queueManager
+          .getCursor('counter')
+          .map(c => c === 3)
+          .option(false)
+      )
+      expect(inTime).toBeTruthy()
+    })()
+
+    expect(store.getState()).toBe(1)
+    expect(socket.write).toHaveBeenCalled()
+  })
   // ! Test: User disconnect -> unsubscribe from channels with no subs left
 })
 

@@ -67,7 +67,7 @@ async function asyncCreate(name: string): Promise<void> {
 
       // Now get the current fragment length to reduce it.
       let actionQueue = await connection.lrangeAsync([latestFragmentName, 0, -1])
-      console.log('load queue', actionQueue, latestFragmentName)
+
       /*
         Compute the initial cursor. The cursor is the index along the whole queue.
         So if a queue is composed of 3 fragments of 5 elements each and 1 last
