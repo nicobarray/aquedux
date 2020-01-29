@@ -1,3 +1,8 @@
+<div style="background-color: yellow;padding:16px;margin: 8px">
+  ⚠ Disclamer: This project is not actively maintained anymore. Feel free to take on the idea and improve it if
+  you choose so.
+</div>
+
 <h1 align="center">
   <img src="aquedux_logo.png" alt="svgr" title="aquedux" width="500">
 </h1>
@@ -6,7 +11,6 @@ Redux over the wire
 
 Aquedux is a Redux enhancer that enables seamless real-time synchronization across many JavaScript clients.
 
-[![CI Status](https://circleci.com/gh/winamax/aquedux.svg?style=shield)](https://circleci.com/gh/Winamax/aquedux)
 [![npm version](https://img.shields.io/npm/v/aquedux-client.svg?style=flat-square)](https://www.npmjs.com/package/aquedux-client)
 [![npm version](https://img.shields.io/npm/v/aquedux-server.svg?style=flat-square)](https://www.npmjs.com/package/aquedux-server)
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
@@ -148,21 +152,15 @@ You can also check out each package for their API documentation:
 
 * Is it used somewhere?
 
-At Winamax. We use it on two projects that helped shape Aquedux the way it is. We
-hope that by open-sourcing the project, more projects will use it and make its API
-and internals evolve.
-
-* Can I contribute?
-
-If you find bugs or have enhancement proposal, do not hesitate to create an issue. The authors will continue to improve it and watch over the project. When aquedux
-reaches a more stable phase, we'll gladely accept pull requests.
+At [Winamax](https://winamax.fr). It is used on two projects that helped shape Aquedux the way it is. We
+hope that by open-sourcing the project, it will sparkle others to create interesting stuff.
 
 # Authors
 
-* Nicolas Barray ([@yahwastaken](https://github.com/yahwastaken)) -
-[Winamax](https://www.winamax.fr/)
+* Nicolas Barray ([@nicobarray](https://github.com/nicobarray)) -
+[Ambler](https://www.ambler.fr/)
 * CHaBou ([@chabou](https://github.com/chabou)) -
-[Winamax](https://www.winamax.fr/)
+[Ambler](https://www.ambler.fr/)
 
 # Thanks
 
